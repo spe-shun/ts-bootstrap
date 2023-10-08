@@ -4,32 +4,23 @@ import * as childProcess from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-// TODO 
 /**
- * 1 如何启动 DEBUG mode
- * 2 兼容其他情况，增加健壮性
- * 3 提供更多的运行模式，option 配置可用
+ * // TODO 兼容其他情况，增加健壮性
+ * // TODO 提供更多的运行模式，option 配置可用
  */
+const DEBUG_TERMINAL_NAME = 'JavaScript Debug Terminal';
+const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
-const TERMINAL_NAME = 'ts-node Terminal';
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('ts-bootstrap.runAtTsNodeTerminal', () => {
-        // 找之前有没有启动过 该 Terminal
-        let terminal = vscode.window.terminals.find(t => t.name === TERMINAL_NAME);
+    const tsVilidResult = childProcess.execSync('which ts-node').toString();
 
-        if (!terminal) {
-            terminal = vscode.window.createTerminal({ name: TERMINAL_NAME });
-        }
+    if (/ts-node\snot\sfound/.test(tsVilidResult)) {
+        vscode.window.showInformationMessage(
+            'ts-bootstrap extension depends on the global installation of ts-node. Please run "npm i -g ts-node" first and then try again.',
+        );
+    }
 
-        const tsVilidResult = childProcess.execSync('which ts-node').toString();
-
-        if (/ts-node\snot\sfound/.test(tsVilidResult)) {
-            vscode.window.showInformationMessage('请先运行 npm i -g ts-node');
-            return;
-        }
-
+    const runFile = (terminal: vscode.Terminal) => {
         const activeTextEditor = vscode.window.activeTextEditor;
 
         if (activeTextEditor) {
@@ -41,49 +32,57 @@ export function activate(context: vscode.ExtensionContext) {
             terminal.show();
             terminal.sendText(`cd ${pathName} && ts-node ${fileName}`);
         } else {
-            vscode.window.showInformationMessage('未选中任何文件');
+            vscode.window.showInformationMessage('No files selected.');
+        }
+    };
+
+    const debugDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.debugTerminal', async () => {
+        let terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
+
+        if (!terminal) {
+            await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal');
+            terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
         }
 
-        // 在终端中执行命令
+        if (!terminal) {
+            vscode.window.showInformationMessage('Unable to create JavaScript Debug Terminal.');
+            return;
+        }
 
-        // // 显示终端
-        // terminal.show();
-        // // 获取当前活动的调试会话;
-        // const activeDebugSession = vscode.debug.activeDebugSession;
+        if (vscode.debug.activeDebugSession) {
+            vscode.window.showInformationMessage(
+                'There is an ongoing Debug session running. Please close it and retry.',
+            );
+            return;
+        }
 
-        // if (activeDebugSession) {
-        //     // 发送自定义命令给 JavaScript 调试会话
-        //     activeDebugSession
-        //         .customRequest('yourCustomRequestName')
-        //         .then(response => {
-        //             // 处理响应
-        //             vscode.window.showInformationMessage(
-        //                 'Received response from JavaScript Debug Session: ' + JSON.stringify(response),
-        //             );
-        //         })
-        //         // .catch(error => {
-        //         //     // 处理错误
-        //         //     vscode.window.showErrorMessage(
-        //         //         'Error communicating with JavaScript Debug Session: ' + error.message,
-        //         //     );
-        //         // });
-        // } else {
-        //     vscode.window.showInformationMessage('No active JavaScript Debug Session found.');
-        // }
-        // // 配置要启动的调试器
-        // const debugConfiguration = {
-        //     type: 'node',
-        //     request: 'attach',
-        //     name: 'Attach to Process',
-        //     port: 9229, // 连接到的进程的调试端口
-        // };
-
-        // // 启动调试 Attach 模式
-        // vscode.debug.startDebugging(undefined, debugConfiguration);
+        runFile(terminal);
     });
 
-    context.subscriptions.push(disposable);
+    const execDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.execTerminal', () => {
+        let terminal = vscode.window.terminals.find(t => t.name === EXEC_TERMINAL_NAME);
+
+        if (!terminal) {
+            terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
+        }
+
+        if (!terminal) {
+            vscode.window.showInformationMessage('Unable to create Terminal.');
+            return;
+        }
+
+        runFile(terminal);
+    });
+
+    context.subscriptions.push(debugDisposable);
+    context.subscriptions.push(execDisposable);
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    const terminal = vscode.window.terminals.find(t => t.name === EXEC_TERMINAL_NAME);
+
+    if (terminal) {
+        terminal.dispose();
+    }
+}

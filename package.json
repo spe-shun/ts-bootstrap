@@ -14,7 +14,13 @@
     "contributes": {
         "commands": [
             {
-                "command": "ts-bootstrap.runAtTsNodeTerminal",
+                "command": "extension.ts-bootstrap.debugTerminal",
+                "title": "ts-node: Debug current file",
+                "shortTitle": "Run",
+                "icon": "$(debug-alt)"
+            },
+            {
+                "command": "extension.ts-bootstrap.execTerminal",
                 "title": "ts-node: Run current file",
                 "shortTitle": "Run",
                 "icon": "$(play)"
@@ -23,7 +29,12 @@
         "menus": {
             "editor/title": [
                 {
-                    "command": "ts-bootstrap.runAtTsNodeTerminal",
+                    "command": "extension.ts-bootstrap.debugTerminal",
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
+                    "group": "navigation"
+                },
+                {
+                    "command": "extension.ts-bootstrap.execTerminal",
                     "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
                     "group": "navigation"
                 }
