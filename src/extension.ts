@@ -4,6 +4,13 @@ import * as childProcess from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+// TODO 
+/**
+ * 1 如何启动 DEBUG mode
+ * 2 兼容其他情况，增加健壮性
+ * 3 提供更多的运行模式，option 配置可用
+ */
+
 const TERMINAL_NAME = 'ts-node Terminal';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
