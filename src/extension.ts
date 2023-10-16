@@ -14,11 +14,22 @@ const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 export function activate(context: vscode.ExtensionContext) {
     const tsVilidResult = childProcess.execSync('which ts-node').toString();
 
+    const ececInCurrent: boolean =
+        vscode.workspace.getConfiguration('ts-bootstrap').get('executeInCurrentDirectory') ?? true;
+
     if (/ts-node\snot\sfound/.test(tsVilidResult)) {
-        vscode.window.showInformationMessage(
+        vscode.window.showErrorMessage(
             'ts-bootstrap extension depends on the global installation of ts-node. Please run "npm i -g ts-node" first and then try again.',
         );
     }
+
+    const getWorkSpaceFolderName = () => {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders?.length !== 1) {
+            return null;
+        }
+        return workspaceFolders[0].uri.path;
+    };
 
     const runFile = (terminal: vscode.Terminal) => {
         const activeTextEditor = vscode.window.activeTextEditor;
@@ -26,11 +37,20 @@ export function activate(context: vscode.ExtensionContext) {
         if (activeTextEditor) {
             const baseName = activeTextEditor.document.fileName;
 
-            const pathName = path.dirname(baseName);
-            const fileName = path.basename(baseName);
-
             terminal.show();
-            terminal.sendText(`cd ${pathName} && ts-node ${fileName}`);
+
+            if (ececInCurrent) {
+                const currPath = getWorkSpaceFolderName();
+                if (!currPath) {
+                    terminal.sendText(`ts-node ${baseName}`);
+                } else {
+                    terminal.sendText(`ts-node ${baseName.replace(currPath, '.')}`);
+                }
+            } else {
+                const pathName = path.dirname(baseName);
+                const fileName = path.basename(baseName);
+                terminal.sendText(`cd ${pathName} && ts-node .${fileName}`);
+            }
         } else {
             vscode.window.showInformationMessage('No files selected.');
         }

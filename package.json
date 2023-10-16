@@ -12,6 +12,18 @@
     "activationEvents": [],
     "main": "./dist/extension.js",
     "contributes": {
+        "configuration": [
+            {
+                "title": "ts-bootstrap",
+                "properties": {
+                    "ts-bootstrap.executeInCurrentDirectory": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "If true, execute the target file in the current directory, else execute in traget file directory"
+                    }
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "extension.ts-bootstrap.debugTerminal",
