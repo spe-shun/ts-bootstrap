@@ -1,68 +1,33 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as childProcess from 'child_process';
-import * as path from 'path';
 import * as vscode from 'vscode';
+import runFile from './scripts/run-files';
 
-/**
- * // TODO 兼容其他情况，增加健壮性
- * // TODO 提供更多的运行模式，option 配置可用
- */
-const DEBUG_TERMINAL_NAME = 'JavaScript Debug Terminal';
+const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
 const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
 export function activate(context: vscode.ExtensionContext) {
     const tsVilidResult = childProcess.execSync('which ts-node').toString();
 
-    const ececInCurrent: boolean =
-        vscode.workspace.getConfiguration('ts-bootstrap').get('executeInCurrentDirectory') ?? true;
-
     if (/ts-node\snot\sfound/.test(tsVilidResult)) {
         vscode.window.showErrorMessage(
-            'ts-bootstrap extension depends on the global installation of ts-node. Please run "npm i -g ts-node" first and then try again.',
+            'ts-bootstrap extension depends on the global installation of ts-node. Please run "npm i -g ts-node" first and try again.',
         );
     }
 
-    const getWorkSpaceFolderName = () => {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders?.length !== 1) {
-            return null;
-        }
-        return workspaceFolders[0].uri.path;
-    };
-
-    const runFile = (terminal: vscode.Terminal) => {
-        const activeTextEditor = vscode.window.activeTextEditor;
-
-        if (activeTextEditor) {
-            const baseName = activeTextEditor.document.fileName;
-
-            terminal.show();
-
-            if (ececInCurrent) {
-                const currPath = getWorkSpaceFolderName();
-                if (!currPath) {
-                    terminal.sendText(`ts-node ${baseName}`);
-                } else {
-                    terminal.sendText(`ts-node ${baseName.replace(currPath, '.')}`);
-                }
-            } else {
-                const pathName = path.dirname(baseName);
-                const fileName = path.basename(baseName);
-                terminal.sendText(`cd ${pathName} && ts-node .${fileName}`);
-            }
-        } else {
-            vscode.window.showInformationMessage('No files selected.');
-        }
-    };
-
     const debugDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.debugTerminal', async () => {
-        let terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
+        vscode.window.terminals.forEach(t => {
+            if (t.name === DEBUG_TERMINAL_NAME) {
+                t.dispose();
+            }
+        });
 
-        if (!terminal) {
-            await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal');
-            terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
-        }
+        await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal', '', undefined, {
+            name: DEBUG_TERMINAL_NAME,
+        });
+
+        const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
 
         if (!terminal) {
             vscode.window.showInformationMessage('Unable to create JavaScript Debug Terminal.');
@@ -80,11 +45,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const execDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.execTerminal', () => {
-        let terminal = vscode.window.terminals.find(t => t.name === EXEC_TERMINAL_NAME);
+        vscode.window.terminals.forEach(t => {
+            if (t.name === EXEC_TERMINAL_NAME) {
+                t.dispose();
+            }
+        });
 
-        if (!terminal) {
-            terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
-        }
+        const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
 
         if (!terminal) {
             vscode.window.showInformationMessage('Unable to create Terminal.');
