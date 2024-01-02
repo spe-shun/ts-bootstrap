@@ -11,7 +11,7 @@ const runFile = async (terminal: vscode.Terminal) => {
 
         terminal.show();
 
-        if (config.ececInCurrent) {
+        if (config.raw.executeInCurrentDirectory) {
             const currPath = getWorkSpaceFolderName();
             if (!currPath) {
                 terminal.sendText(`ts-node ${baseName}`);

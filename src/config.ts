@@ -24,10 +24,12 @@ class Configs {
         this.#config = {
             [ConfigNameEnum.EXEC_IN_CURRENT_DIR]: confObj.get<boolean>(ConfigNameEnum.EXEC_IN_CURRENT_DIR) ?? true,
         };
+
+        Object.freeze(this.#config);
     }
 
-    get ececInCurrent() {
-        return this.#config.executeInCurrentDirectory;
+    get raw() {
+        return this.#config;
     }
 }
 
