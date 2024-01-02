@@ -45,3 +45,39 @@
 * Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
 * [Publish your extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) on the VS Code extension marketplace.
 * Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).
+
+## BUILD package
+
+在 Visual Studio Code (VS Code) 中编写插件后，你可以使用 `vsce`（Visual Studio Code Extensions）工具来打包你的插件。`vsce` 是一个命令行工具，用于管理 VS Code 扩展，包括打包和发布扩展。
+
+以下是使用 `vsce` 打包 VS Code 插件的步骤：
+
+1. **安装 `vsce`**:
+   如果你还没有安装 `vsce`，你需要先通过 npm 安装它。打开终端或命令提示符，然后运行以下命令：
+
+   ```sh
+   npm install -g vsce
+   ```
+
+2. **登录到你的发布者账户** (如果需要):
+   如果你打算将插件发布到 VS Code 扩展市场，你需要创建一个发布者账户，并使用 `vsce login <publisher-name>` 命令登录。如果只是打包而不发布，这一步可以跳过。
+
+3. **打包插件**:
+   在你的插件项目根目录下，运行以下命令来打包你的插件：
+
+   ```sh
+   vsce package
+   ```
+
+   这个命令将会生成一个 `.vsix` 文件，这是 VS Code 扩展的打包格式。你可以在任何 VS Code 实例中安装这个 `.vsix` 文件，或者将其分享给其他人。
+
+4. **（可选）发布插件**:
+   如果你想将打包好的插件发布到 VS Code 扩展市场，可以使用以下命令：
+
+   ```sh
+   vsce publish
+   ```
+
+   这个命令会将你的扩展发布到你的发布者账户下。确保你已经登录到你的发布者账户，并且你的 `package.json` 文件已经正确配置。
+
+这些就是使用 `vsce` 打包 VS Code 插件的基本步骤。在打包之前，请确保你已经测试了插件的所有功能，并且遵循了所有的最佳实践和指南。

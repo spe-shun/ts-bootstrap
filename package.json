@@ -2,7 +2,7 @@
     "name": "ts-bootstrap",
     "displayName": "ts-bootstrap",
     "description": "",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "engines": {
         "vscode": "^1.40.0"
     },
@@ -27,13 +27,13 @@
         "commands": [
             {
                 "command": "extension.ts-bootstrap.debugTerminal",
-                "title": "ts-node: Debug current file",
+                "title": "ts-bootstrap: Debug current file",
                 "shortTitle": "Run",
                 "icon": "$(debug-alt)"
             },
             {
                 "command": "extension.ts-bootstrap.execTerminal",
-                "title": "ts-node: Run current file",
+                "title": "ts-bootstrap: Run current file",
                 "shortTitle": "Run",
                 "icon": "$(play)"
             }
