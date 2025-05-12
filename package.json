@@ -2,12 +2,13 @@
     "name": "ts-bootstrap",
     "displayName": "TS/JS Runner & Debugger",
     "description": "VSCode extension for quickly running and debugging TypeScript and JavaScript files",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "spe-shun",
     "repository": {
         "type": "git",
         "url": "https://github.com/spe-shun/ts-bootstrap.git"
     },
+    "changelog": "CHANGELOG.md",
     "icon": "resources/icon.png",
     "engines": {
         "vscode": "^1.40.0"
@@ -90,7 +91,10 @@
         "watch-tests": "tsc -p . -w --outDir out",
         "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
         "lint": "eslint src --ext ts",
-        "test": "node ./out/test/runTest.js"
+        "test": "node ./out/test/runTest.js",
+        "release:patch": "vsce publish patch",
+        "release:minor": "vsce publish minor",
+        "release:major": "vsce publish major"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.2",
@@ -99,6 +103,7 @@
         "@typescript-eslint/eslint-plugin": "^6.7.3",
         "@typescript-eslint/parser": "^6.7.3",
         "@vscode/test-electron": "^2.3.4",
+        "@vscode/vsce": "^3.3.2",
         "eslint": "^8.50.0",
         "glob": "^10.3.3",
         "mocha": "^10.2.0",
