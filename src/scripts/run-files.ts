@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import config from '../config';
 import { getWorkSpaceFolderName } from '../utils';
 
-const runFile = async (terminal: vscode.Terminal) => {
+const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
     const activeTextEditor = vscode.window.activeTextEditor;
 
     if (activeTextEditor) {
@@ -11,7 +11,11 @@ const runFile = async (terminal: vscode.Terminal) => {
         const fileExtension = path.extname(baseName).toLowerCase();
         
         // 根据文件扩展名选择执行器
-        const executor = fileExtension === '.js' ? 'node' : 'ts-node';
+        let executor = fileExtension === '.js' ? 'node' : 'ts-node';
+
+        if (nodeVersion) {
+            executor = `nvm use ${nodeVersion} && ${executor}`;
+        }
 
         terminal.show();
 
