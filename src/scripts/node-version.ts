@@ -116,7 +116,7 @@ export async function selectNodeVersion(): Promise<string | undefined> {
     
     // Show quick pick to let user select a version
     const selected = await vscode.window.showQuickPick(displayVersions, {
-        placeHolder: '选择 Node.js 版本',
+        placeHolder: 'Select Node.js version',
         canPickMany: false
     });
     

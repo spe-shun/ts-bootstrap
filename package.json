@@ -1,7 +1,7 @@
 {
     "name": "ts-bootstrap",
-    "displayName": "ts-bootstrap",
-    "description": "",
+    "displayName": "TS/JS Runner & Debugger",
+    "description": "VSCode extension for quickly running and debugging TypeScript and JavaScript files",
     "version": "0.1.0",
     "publisher": "spe-shun",
     "repository": {
@@ -13,6 +13,8 @@
         "vscode": "^1.40.0"
     },
     "categories": [
+        "Programming Languages",
+        "Debuggers",
         "Other"
     ],
     "activationEvents": [
@@ -35,25 +37,25 @@
         "commands": [
             {
                 "command": "extension.ts-bootstrap.execTerminal",
-                "title": "ts & js: Run",
+                "title": "Run TS/JS",
                 "shortTitle": "Run",
                 "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminal",
-                "title": "ts & js: Debug",
-                "shortTitle": "Run",
+                "title": "Debug TS/JS",
+                "shortTitle": "Debug",
                 "icon": "$(debug-alt)"
             },
             {
                 "command": "extension.ts-bootstrap.execTerminalWithNodeVersion",
-                "title": "ts & js: Run with ...",
+                "title": "Run TS/JS with ...",
                 "shortTitle": "Run with selected Node",
                 "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminalWithNodeVersion",
-                "title": "ts & js: Debug with ...",
+                "title": "Debug TS/JS with ...",
                 "shortTitle": "Debug with selected Node",
                 "icon": "$(debug-alt)"
             }
@@ -62,23 +64,19 @@
             "editor/title/run": [
                 {
                     "command": "extension.ts-bootstrap.execTerminal",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
-                    "group": "navigation"
-                },
-                {
-                    "command": "extension.ts-bootstrap.debugTerminal",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
-                    "group": "navigation"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
                 },
                 {
                     "command": "extension.ts-bootstrap.execTerminalWithNodeVersion",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
-                    "group": "navigation"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
+                },
+                {
+                    "command": "extension.ts-bootstrap.debugTerminal",
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
                 },
                 {
                     "command": "extension.ts-bootstrap.debugTerminalWithNodeVersion",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
-                    "group": "navigation"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
                 }
             ]
         }
