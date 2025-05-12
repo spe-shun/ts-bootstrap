@@ -1,5 +1,8 @@
 import * as childProcess from 'child_process';
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as path from 'path';
+import * as semver from 'semver';
 
 /**
  * Get available Node.js versions installed via nvm
@@ -7,29 +10,38 @@ import * as vscode from 'vscode';
 export function getNodeVersions(): Promise<string[]> {
     return new Promise((resolve) => {
         try {
-            // Execute 'nvm list' command through zsh to get available Node.js versions
-            const command = 'nvm list';
+            // Use nvm command to get installed versions
+            const homeDir = os.homedir();
+            const nvmScript = path.join(homeDir, '.nvm/nvm.sh');
+            const command = `. "${nvmScript}" && nvm ls --no-alias`;
+            
             const output = childProcess.execSync(command, { 
                 encoding: 'utf8',
                 shell: '/bin/zsh'
             });
             
-            // Parse the output to extract version numbers
-            const versionRegex = /v(\d+\.\d+\.\d+)/g;
-            const versions: string[] = [];
+            // Extract installed versions from output
+            const versionRegex = /v(\d+\.\d+\.\d+)(?!.*?-> N\/A)/g;
+            const versionSet = new Set<string>();
             let match;
             
             while ((match = versionRegex.exec(output)) !== null) {
-                versions.push(match[1]);
+                versionSet.add(match[1]);
             }
             
+            // Use semver to sort versions in descending order (newest first)
+            const versions = Array.from(versionSet).sort((a, b) => {
+                return semver.rcompare(a, b);
+            });
+            
             if (versions.length === 0) {
-                vscode.window.showWarningMessage('No Node.js versions found via nvm. Make sure nvm is installed correctly.');
+                vscode.window.showWarningMessage('未找到 Node.js 版本。请确保 nvm 正确安装。');
             }
             
             resolve(versions);
         } catch (error) {
-            vscode.window.showErrorMessage('Failed to get Node.js versions. Make sure nvm is installed in zsh.');
+            console.error('NVM错误:', error);
+            vscode.window.showErrorMessage('获取 Node.js 版本失败。请确保 nvm 在 zsh 中安装。');
             resolve([]);
         }
     });
@@ -45,9 +57,15 @@ export async function selectNodeVersion(): Promise<string | undefined> {
         return undefined;
     }
     
+    // Add 'v' prefix to versions for display
+    const displayVersions = versions.map(version => `v${version}`);
+    
     // Show quick pick to let user select a version
-    return vscode.window.showQuickPick(versions, {
+    const selected = await vscode.window.showQuickPick(displayVersions, {
         placeHolder: '选择 Node.js 版本',
         canPickMany: false
     });
+    
+    // Remove 'v' prefix when returning the selected version
+    return selected ? selected.substring(1) : undefined;
 } 
