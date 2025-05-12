@@ -1,26 +1,28 @@
-# ts-bootstrap 扩展
+# ts-bootstrap Extension
 
-一个用于简化 JavaScript 和 TypeScript 文件运行和调试的 VS Code 扩展。
+A VS Code extension for simplifying JavaScript and TypeScript file execution and debugging.
 
-## 功能特性
+[简体中文](./README.zh-CN.md)
 
-- 支持一键运行和调试当前打开的 JS/TS 文件
-- 提供调试模式和普通运行模式
-- 支持选择不同 Node.js 版本运行或调试文件
-- 自动检测并提示安装缺少的依赖（如 ts-node）
-- 可配置在当前目录或文件所在目录执行代码
+## Features
 
-## 使用方法
+- One-click run and debug for currently open JS/TS files
+- Support for both debug mode and normal execution mode
+- Support for selecting different Node.js versions for running or debugging files
+- Automatic detection and prompting to install missing dependencies (e.g., ts-node)
+- Configurable execution in current directory or file directory
 
-1. 打开任意 JS 或 TS 文件
-2. 点击编辑器右上角的运行按钮（▶）或调试按钮（⬤）
-3. 也可以使用命令面板执行相应命令
+## Usage
 
-## 配置选项
+1. Open any JS or TS file
+2. Click the run button or debug button (▶) in the editor's top-right corner
+3. Alternatively, use the command palette to execute corresponding commands
 
-- `ts-bootstrap.executeInCurrentDirectory`：控制在当前工作目录还是文件所在目录执行代码
+## Configuration Options
 
-## 要求
+- `ts-bootstrap.executeInCurrentDirectory`: Controls whether to execute code in the current working directory or in the file's directory
 
-- 需要安装 ts-node（用于直接运行 TypeScript 文件）
-- 推荐使用 nvm 进行 Node.js 版本管理
+## Requirements
+
+- ts-node installation required (for direct execution of TypeScript files)
+- nvm recommended for Node.js version management

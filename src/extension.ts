@@ -123,24 +123,10 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    // 显示Node版本信息
-    const showNodeVersionDisposable = vscode.commands.registerCommand(
-        'extension.ts-bootstrap.showNodeVersion', 
-        () => {
-            try {
-                const nodeVersion = childProcess.execSync('node --version', { encoding: 'utf8' }).trim();
-                vscode.window.showInformationMessage(`当前Node.js版本: ${nodeVersion}`);
-            } catch (error) {
-                vscode.window.showErrorMessage('无法获取Node.js版本信息');
-            }
-        }
-    );
-
     context.subscriptions.push(debugDisposable);
     context.subscriptions.push(execDisposable);
     context.subscriptions.push(execWithNodeVersionDisposable);
     context.subscriptions.push(debugWithNodeVersionDisposable);
-    context.subscriptions.push(showNodeVersionDisposable);
 }
 
 // This method is called when your extension is deactivated
