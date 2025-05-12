@@ -2,13 +2,13 @@
     "name": "ts-bootstrap",
     "displayName": "ts-bootstrap",
     "description": "",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "publisher": "spe-shun",
     "repository": {
         "type": "git",
         "url": "https://github.com/spe-shun/ts-bootstrap.git"
     },
-    "icon": "resources/logo.png",
+    "icon": "resources/icon.png",
     "engines": {
         "vscode": "^1.40.0"
     },
@@ -37,37 +37,25 @@
                 "command": "extension.ts-bootstrap.execTerminal",
                 "title": "ts & js: Run",
                 "shortTitle": "Run",
-                "icon": {
-                    "light": "resources/run-light.png",
-                    "dark": "resources/run-dark.png"
-                }
+                "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminal",
                 "title": "ts & js: Debug",
                 "shortTitle": "Run",
-                "icon": {
-                    "light": "resources/debug-light.png",
-                    "dark": "resources/debug-dark.png"
-                }
+                "icon": "$(debug-alt)"
             },
             {
                 "command": "extension.ts-bootstrap.execTerminalWithNodeVersion",
                 "title": "ts & js: Run with ...",
                 "shortTitle": "Run with selected Node",
-                "icon": {
-                    "light": "resources/run-with-light.png",
-                    "dark": "resources/run-with-dark.png"
-                }
+                "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminalWithNodeVersion",
                 "title": "ts & js: Debug with ...",
                 "shortTitle": "Debug with selected Node",
-                "icon": {
-                    "light": "resources/debug-with-light.png",
-                    "dark": "resources/debug-with-dark.png"
-                }
+                "icon": "$(debug-alt)"
             }
         ],
         "menus": {
