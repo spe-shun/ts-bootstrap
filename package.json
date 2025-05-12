@@ -2,14 +2,16 @@
     "name": "ts-bootstrap",
     "displayName": "ts-bootstrap",
     "description": "",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "engines": {
         "vscode": "^1.40.0"
     },
     "categories": [
         "Other"
     ],
-    "activationEvents": [],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
     "main": "./dist/extension.js",
     "contributes": {
         "configuration": [
@@ -26,27 +28,32 @@
         ],
         "commands": [
             {
+                "command": "extension.ts-bootstrap.execTerminal",
+                "title": "ts-bootstrap: Run current file",
+                "shortTitle": "Run",
+                "icon": "$(play)"
+            },
+            {
                 "command": "extension.ts-bootstrap.debugTerminal",
                 "title": "ts-bootstrap: Debug current file",
                 "shortTitle": "Run",
                 "icon": "$(debug-alt)"
             },
             {
-                "command": "extension.ts-bootstrap.execTerminal",
-                "title": "ts-bootstrap: Run current file",
-                "shortTitle": "Run",
-                "icon": "$(play)"
+                "command": "extension.ts-bootstrap.showNodeVersion",
+                "title": "ts-bootstrap: Show Node.js version information",
+                "shortTitle": "Node Info"
             }
         ],
         "menus": {
-            "editor/title": [
+            "editor/title/run": [
                 {
-                    "command": "extension.ts-bootstrap.debugTerminal",
+                    "command": "extension.ts-bootstrap.execTerminal",
                     "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
                     "group": "navigation"
                 },
                 {
-                    "command": "extension.ts-bootstrap.execTerminal",
+                    "command": "extension.ts-bootstrap.debugTerminal",
                     "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
                     "group": "navigation"
                 }

@@ -1,20 +1,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as childProcess from 'child_process';
 import * as vscode from 'vscode';
 import runFile from './scripts/run-files';
+import { checkTsNodeInstallation } from './scripts/check-tsnode';
+import { setupNodeVersionStatusBar } from './scripts/node-version';
 
 const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
 const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
 export function activate(context: vscode.ExtensionContext) {
-    const tsVilidResult = childProcess.execSync('which ts-node').toString();
+    // 设置状态栏显示 Node.js 版本
+    setupNodeVersionStatusBar(context);
 
-    if (/ts-node\snot\sfound/.test(tsVilidResult)) {
-        vscode.window.showErrorMessage(
-            'ts-bootstrap extension depends on the global installation of ts-node. Please run "npm i -g ts-node" first and try again.',
-        );
-    }
+    // 检查 ts-node 是否已安装
+    checkTsNodeInstallation();
 
     const debugDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.debugTerminal', async () => {
         vscode.window.terminals.forEach(t => {
