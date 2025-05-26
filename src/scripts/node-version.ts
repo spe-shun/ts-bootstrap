@@ -127,7 +127,7 @@ export function getNodeVersions(): Promise<string[]> {
 export function getNvmUseCommand(version: string): string {
     if (isWindows && !isWSL) {
         // Windows using nvm-windows format
-        return `nvm use ${version}`;
+        return `NODE_OPTIONS= nvm use ${version}`;
     } else {
         const shellType = getShellType();
         const homeDir = os.homedir();
@@ -155,13 +155,13 @@ export function getNvmUseCommand(version: string): string {
         if (nvmScript) {
             switch (shellType) {
                 case 'fish':
-                    return `bash -c '. "${nvmScript}" && nvm use ${version}'`;
+                    return `NODE_OPTIONS= bash -c '. "${nvmScript}" && nvm use ${version}'`;
                 default:
-                    return `. "${nvmScript}" && nvm use ${version}`;
+                    return `NODE_OPTIONS= . "${nvmScript}" && NODE_OPTIONS= nvm use ${version}`;
             }
         } else {
             // Fallback to simple nvm use command
-            return `nvm use ${version}`;
+            return `NODE_OPTIONS= nvm use ${version}`;
         }
     }
 }

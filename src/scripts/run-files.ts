@@ -26,7 +26,7 @@ const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
 
         // Handle nvm command
         if (nodeVersion) {
-            executor = `${getNvmUseCommand(nodeVersion)}${commandSeparator} ${executor}`;
+            executor = `${getNvmUseCommand(nodeVersion)} ${commandSeparator} ${executor}`;
         }
 
         terminal.show();
