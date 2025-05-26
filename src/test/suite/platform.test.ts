@@ -1,21 +1,21 @@
 import * as assert from 'assert';
 import * as os from 'os';
-import { 
-    isWindows, 
-    isMacOS, 
-    isLinux, 
-    isWSL, 
-    isPowerShell, 
-    isCmd, 
-    getShellType, 
-    getCommandSeparator, 
-    normalizePath 
+import {
+    isWindows,
+    isMacOS,
+    isLinux,
+    isWSL,
+    isPowerShell,
+    isCmd,
+    getShellType,
+    getCommandSeparator,
+    normalizePath,
 } from '../../utils';
 
 suite('Platform Detection Test Suite', () => {
     test('Should detect platform correctly', () => {
         const platform = os.platform();
-        
+
         if (platform === 'win32') {
             assert.strictEqual(isWindows, true);
             assert.strictEqual(isMacOS, false);
@@ -44,7 +44,7 @@ suite('Platform Detection Test Suite', () => {
     test('Should normalize paths correctly', () => {
         const unixPath = '/home/user/project/file.ts';
         const windowsPath = 'C:\\Users\\user\\project\\file.ts';
-        
+
         if (isWindows && !isWSL) {
             // Windows should convert forward slashes to backslashes
             assert.strictEqual(normalizePath(unixPath), '\\home\\user\\project\\file.ts');
@@ -59,7 +59,7 @@ suite('Platform Detection Test Suite', () => {
     test('Should return appropriate command separator', () => {
         const separator = getCommandSeparator();
         const shellType = getShellType();
-        
+
         switch (shellType) {
             case 'powershell':
                 assert.strictEqual(separator, ';');
@@ -86,12 +86,12 @@ suite('Platform Detection Test Suite', () => {
         const platforms = [isWindows, isMacOS, isLinux];
         const truePlatforms = platforms.filter(p => p);
         assert.strictEqual(truePlatforms.length, 1, 'Exactly one platform should be detected as true');
-        
+
         // WSL should only be true on Linux
         if (isWSL) {
             assert.strictEqual(isLinux, true, 'WSL should only be detected on Linux');
         }
-        
+
         // Windows-specific shells should only be detected on Windows
         if (isPowerShell() || isCmd()) {
             // Note: PowerShell can run on other platforms, so this test is relaxed
@@ -101,4 +101,4 @@ suite('Platform Detection Test Suite', () => {
             }
         }
     });
-}); 
+});
