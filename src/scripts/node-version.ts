@@ -2,8 +2,9 @@ import * as childProcess from 'child_process';
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as semver from 'semver';
-import { isWindows, isWSL, isPowerShell } from '../utils';
+import { isWindows, isWSL, getShellType } from '../utils';
 
 /**
  * Get available Node.js versions installed via nvm or nvm-windows
@@ -14,7 +15,7 @@ export function getNodeVersions(): Promise<string[]> {
             let output = '';
             
             if (isWindows && !isWSL) {
-                // Windows 环境下使用 nvm-windows
+                // Windows environment using nvm-windows
                 try {
                     output = childProcess.execSync('nvm list', { 
                         encoding: 'utf8' 
@@ -25,7 +26,7 @@ export function getNodeVersions(): Promise<string[]> {
                     return;
                 }
                 
-                // nvm-windows 输出格式不同，需要单独处理
+                // nvm-windows has different output format, needs separate handling
                 const versionRegex = /v(\d+\.\d+\.\d+)/g;
                 const versionSet = new Set<string>();
                 let match;
@@ -40,24 +41,56 @@ export function getNodeVersions(): Promise<string[]> {
                 
                 resolve(versions);
             } else {
-                // Linux/macOS/WSL 环境下使用标准 nvm
+                // Linux/macOS/WSL environment using standard nvm
                 const homeDir = os.homedir();
                 let nvmCommand = '';
+                const shellType = getShellType();
                 
-                if (isWSL) {
-                    // WSL 环境
-                    const nvmScript = path.join(homeDir, '.nvm/nvm.sh');
-                    nvmCommand = `. "${nvmScript}" && nvm ls --no-alias`;
-                } else {
-                    // 非 WSL 的 Linux/macOS 环境
-                    const nvmScript = path.join(homeDir, '.nvm/nvm.sh');
-                    nvmCommand = `. "${nvmScript}" && nvm ls --no-alias`;
+                // Try different common nvm installation paths
+                const nvmPaths = [
+                    path.join(homeDir, '.nvm/nvm.sh'),
+                    '/usr/local/share/nvm/nvm.sh',
+                    '/opt/nvm/nvm.sh',
+                    '/usr/share/nvm/nvm.sh'
+                ];
+                
+                let nvmScript = '';
+                for (const nvmPath of nvmPaths) {
+                    try {
+                        if (fs.existsSync(nvmPath)) {
+                            nvmScript = nvmPath;
+                            break;
+                        }
+                    } catch (error) {
+                        // Continue to next path
+                        continue;
+                    }
+                }
+                
+                if (!nvmScript) {
+                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.unix'));
+                    resolve([]);
+                    return;
+                }
+                
+                // Build command based on shell type
+                switch (shellType) {
+                    case 'fish':
+                        // Fish shell doesn't support source command in the same way
+                        nvmCommand = `bash -c '. "${nvmScript}" && nvm ls --no-alias'`;
+                        break;
+                    case 'zsh':
+                    case 'bash':
+                    default:
+                        nvmCommand = `. "${nvmScript}" && nvm ls --no-alias`;
+                        break;
                 }
                 
                 try {
+                    const shell = shellType === 'fish' ? '/bin/bash' : (process.env.SHELL || '/bin/bash');
                     output = childProcess.execSync(nvmCommand, { 
                         encoding: 'utf8',
-                        shell: process.env.SHELL || '/bin/bash'
+                        shell: shell
                     });
                 } catch (error) {
                     vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.unix'));
@@ -65,7 +98,7 @@ export function getNodeVersions(): Promise<string[]> {
                     return;
                 }
                 
-                // 处理标准 nvm 输出
+                // Handle standard nvm output
                 const versionRegex = /v(\d+\.\d+\.\d+)(?!.*?-> N\/A)/g;
                 const versionSet = new Set<string>();
                 let match;
@@ -81,7 +114,7 @@ export function getNodeVersions(): Promise<string[]> {
                 resolve(versions);
             }
         } catch (error) {
-            console.error('NVM错误:', error);
+            console.error('NVM Error:', error);
             vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.getVersionsFailed'));
             resolve([]);
         }
@@ -89,15 +122,47 @@ export function getNodeVersions(): Promise<string[]> {
 }
 
 /**
- * Format nvm use command based on environment
+ * Format nvm use command based on environment and shell type
  */
 export function getNvmUseCommand(version: string): string {
     if (isWindows && !isWSL) {
-        // Windows 使用 nvm-windows 格式
+        // Windows using nvm-windows format
         return `nvm use ${version}`;
     } else {
-        // Linux/macOS/WSL 使用标准 nvm 格式
-        return `nvm use ${version}`;
+        const shellType = getShellType();
+        const homeDir = os.homedir();
+        
+        // Try to find nvm script
+        const nvmPaths = [
+            path.join(homeDir, '.nvm/nvm.sh'),
+            '/usr/local/share/nvm/nvm.sh',
+            '/opt/nvm/nvm.sh',
+            '/usr/share/nvm/nvm.sh'
+        ];
+        
+        let nvmScript = '';
+        for (const nvmPath of nvmPaths) {
+            try {
+                if (fs.existsSync(nvmPath)) {
+                    nvmScript = nvmPath;
+                    break;
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+        
+        if (nvmScript) {
+            switch (shellType) {
+                case 'fish':
+                    return `bash -c '. "${nvmScript}" && nvm use ${version}'`;
+                default:
+                    return `. "${nvmScript}" && nvm use ${version}`;
+            }
+        } else {
+            // Fallback to simple nvm use command
+            return `nvm use ${version}`;
+        }
     }
 }
 

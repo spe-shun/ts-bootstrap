@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import config from '../config';
-import { getWorkSpaceFolderName, isWindows, isPowerShell, normalizePath, isWSL } from '../utils';
+import { getWorkSpaceFolderName, isWindows, isPowerShell, normalizePath, isWSL, getCommandSeparator, getShellType } from '../utils';
 import { getNvmUseCommand } from './node-version';
 
 const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
@@ -11,50 +11,54 @@ const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
         const baseName = activeTextEditor.document.fileName;
         const fileExtension = path.extname(baseName).toLowerCase();
         
-        // 根据文件扩展名选择执行器
+        // Choose executor based on file extension
         let executor = fileExtension === '.js' ? 'node' : 'ts-node';
-        let cdCommand = 'cd';
-        let pathSeparator = isWindows && !isWSL ? '\\' : '/';
+        const shellType = getShellType();
+        const commandSeparator = getCommandSeparator();
         
-        // 处理 nvm 命令
+        // Handle nvm command
         if (nodeVersion) {
-            executor = `${getNvmUseCommand(nodeVersion)} && ${executor}`;
+            executor = `${getNvmUseCommand(nodeVersion)}${commandSeparator} ${executor}`;
         }
 
         terminal.show();
 
-        // 规范化文件路径，确保在不同系统下都能正确处理
+        // Normalize file path to ensure correct handling across different systems
         const normalizedBaseName = normalizePath(baseName);
         
         if (config.raw.executeInCurrentDirectory) {
             const currPath = getWorkSpaceFolderName();
             if (!currPath) {
-                terminal.sendText(`${executor} ${normalizedBaseName}`);
+                terminal.sendText(`${executor} "${normalizedBaseName}"`);
             } else {
-                // 处理工作空间路径替换
+                // Handle workspace path replacement
                 const normalizedCurrPath = normalizePath(currPath);
                 let relativePath = normalizedBaseName.replace(normalizedCurrPath, '.');
                 
-                // Windows PowerShell 对路径的特殊处理
-                if (isWindows && isPowerShell() && !isWSL) {
-                    relativePath = relativePath.replace(/^\.\//, '.\\');
+                // Ensure proper path format for different shells
+                if (isWindows && !isWSL) {
+                    if (shellType === 'powershell') {
+                        relativePath = relativePath.replace(/^\.\//, '.\\');
+                    } else if (shellType === 'cmd') {
+                        relativePath = relativePath.replace(/^\.\//, '.\\');
+                    }
                 }
                 
-                terminal.sendText(`${executor} ${relativePath}`);
+                terminal.sendText(`${executor} "${relativePath}"`);
             }
         } else {
-            // 获取文件所在目录和文件名
+            // Get directory and filename
             const pathName = path.dirname(normalizedBaseName);
             const fileName = path.basename(normalizedBaseName);
             
-            // 根据环境设置正确的文件前缀
-            const filePrefix = isWindows && isPowerShell() && !isWSL ? '.\\ ' : './';
-            
-            // 在 PowerShell 中改进 cd 命令
-            if (isWindows && isPowerShell() && !isWSL) {
-                terminal.sendText(`${cdCommand} "${pathName}" ; ${executor} ${filePrefix}${fileName}`);
+            // Use quotes to handle paths with spaces
+            if (shellType === 'powershell') {
+                terminal.sendText(`cd "${pathName}" ${commandSeparator} ${executor} ".\\${fileName}"`);
+            } else if (shellType === 'cmd') {
+                terminal.sendText(`cd /d "${pathName}" ${commandSeparator} ${executor} ".\\${fileName}"`);
             } else {
-                terminal.sendText(`${cdCommand} ${pathName} && ${executor} ${filePrefix}${fileName}`);
+                // Unix-like shells (bash, zsh, fish, etc.)
+                terminal.sendText(`cd "${pathName}" ${commandSeparator} ${executor} "./${fileName}"`);
             }
         }
     } else {
