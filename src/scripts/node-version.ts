@@ -20,7 +20,7 @@ export function getNodeVersions(): Promise<string[]> {
                         encoding: 'utf8' 
                     });
                 } catch (error) {
-                    vscode.window.showErrorMessage('获取 Node.js 版本失败。请确保 nvm-windows 已安装。');
+                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.windows'));
                     resolve([]);
                     return;
                 }
@@ -60,7 +60,7 @@ export function getNodeVersions(): Promise<string[]> {
                         shell: process.env.SHELL || '/bin/bash'
                     });
                 } catch (error) {
-                    vscode.window.showErrorMessage('获取 Node.js 版本失败。请确保 nvm 已安装。');
+                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.unix'));
                     resolve([]);
                     return;
                 }
@@ -82,7 +82,7 @@ export function getNodeVersions(): Promise<string[]> {
             }
         } catch (error) {
             console.error('NVM错误:', error);
-            vscode.window.showErrorMessage('获取 Node.js 版本失败。');
+            vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.getVersionsFailed'));
             resolve([]);
         }
     });
@@ -116,7 +116,7 @@ export async function selectNodeVersion(): Promise<string | undefined> {
     
     // Show quick pick to let user select a version
     const selected = await vscode.window.showQuickPick(displayVersions, {
-        placeHolder: 'Select Node.js version',
+        placeHolder: vscode.l10n.t('nodeVersion.selectPlaceholder'),
         canPickMany: false
     });
     

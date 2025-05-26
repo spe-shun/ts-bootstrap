@@ -10,7 +10,7 @@ const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
 const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
 export function activate(context: vscode.ExtensionContext) {
-    // 检查 ts-node 是否已安装
+    // Check if ts-node is installed
     checkTsNodeInstallation();
 
     const debugDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.debugTerminal', async () => {
@@ -27,13 +27,13 @@ export function activate(context: vscode.ExtensionContext) {
         const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
 
         if (!terminal) {
-            vscode.window.showInformationMessage('Unable to create JavaScript Debug Terminal.');
+            vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
             return;
         }
 
         if (vscode.debug.activeDebugSession) {
             vscode.window.showInformationMessage(
-                'There is an ongoing Debug session running. Please close it and retry.',
+                vscode.l10n.t('terminal.debugSessionRunning'),
             );
             return;
         }
@@ -51,18 +51,18 @@ export function activate(context: vscode.ExtensionContext) {
         const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
 
         if (!terminal) {
-            vscode.window.showInformationMessage('Unable to create Terminal.');
+            vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateTerminal'));
             return;
         }
 
         runFile(terminal);
     });
 
-    // 使用指定Node版本运行
+    // Run with specified Node version
     const execWithNodeVersionDisposable = vscode.commands.registerCommand(
         'extension.ts-bootstrap.execTerminalWithNodeVersion', 
         async () => {
-            // 选择Node版本
+            // Select Node version
             const nodeVersion = await selectNodeVersion();
             if (!nodeVersion) {
                 return;
@@ -77,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
             const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
 
             if (!terminal) {
-                vscode.window.showInformationMessage('Unable to create Terminal.');
+                vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateTerminal'));
                 return;
             }
 
@@ -85,11 +85,11 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    // 使用指定Node版本调试
+    // Debug with specified Node version
     const debugWithNodeVersionDisposable = vscode.commands.registerCommand(
         'extension.ts-bootstrap.debugTerminalWithNodeVersion', 
         async () => {
-            // 选择Node版本
+            // Select Node version
             const nodeVersion = await selectNodeVersion();
             if (!nodeVersion) {
                 return;
@@ -108,13 +108,13 @@ export function activate(context: vscode.ExtensionContext) {
             const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
 
             if (!terminal) {
-                vscode.window.showInformationMessage('Unable to create JavaScript Debug Terminal.');
+                vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
                 return;
             }
 
             if (vscode.debug.activeDebugSession) {
                 vscode.window.showInformationMessage(
-                    'There is an ongoing Debug session running. Please close it and retry.',
+                    vscode.l10n.t('terminal.debugSessionRunning'),
                 );
                 return;
             }

@@ -3,12 +3,12 @@ import * as vscode from 'vscode';
 import { isWindows, isPowerShell } from '../utils';
 
 /**
- * 检查 ts-node 是否已安装，如果未安装则提示用户安装
+ * Check if ts-node is installed, prompt user to install if not
  */
 export function checkTsNodeInstallation(): boolean {
     let tsNodeInstalled = false;
     try {
-        // 根据系统和 shell 类型使用不同命令检查 ts-node
+        // Use different commands to check ts-node based on OS and shell type
         let checkCommand = isWindows ? 
             'where ts-node' : 
             'which ts-node';
@@ -16,23 +16,23 @@ export function checkTsNodeInstallation(): boolean {
         childProcess.execSync(checkCommand, { stdio: 'ignore' });
         tsNodeInstalled = true;
     } catch (error) {
-        // ts-node 未安装，提示用户安装
-        const installButton = 'Install ts-node';
+        // ts-node not installed, prompt user to install
+        const installButton = vscode.l10n.t('tsnode.installButton');
         vscode.window.showErrorMessage(
-            'ts-bootstrap extension depends on ts-node. Please install it to run TypeScript files directly.',
+            vscode.l10n.t('tsnode.notInstalled'),
             installButton
         ).then(selection => {
             if (selection === installButton) {
-                const terminal = vscode.window.createTerminal('ts-node Installation');
+                const terminal = vscode.window.createTerminal(vscode.l10n.t('tsnode.installTerminalName'));
                 terminal.show();
                 
-                // 根据不同环境发送不同的安装命令
+                // Send different installation commands based on environment
                 if (isPowerShell()) {
                     terminal.sendText('npm install -g ts-node');
-                    terminal.sendText('Write-Host "Installation completed. Please restart VS Code after installation."');
+                    terminal.sendText(`Write-Host "${vscode.l10n.t('tsnode.installCompleted')}"`);
                 } else {
                     terminal.sendText('npm install -g ts-node');
-                    terminal.sendText('echo "Installation completed. Please restart VS Code after installation."');
+                    terminal.sendText(`echo "${vscode.l10n.t('tsnode.installCompleted')}"`);
                 }
             }
         });

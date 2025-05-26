@@ -1,0 +1,12 @@
+{
+  "config.executeInCurrentDirectory": "true の場合、現在のディレクトリでターゲットファイルを実行し、false の場合はターゲットファイルのディレクトリで実行します",
+  
+  "command.runTsJs": "TS/JS を実行",
+  "command.debugTsJs": "TS/JS をデバッグ",
+  "command.runTsJsWith": "TS/JS を実行（指定バージョン）",
+  "command.debugTsJsWith": "TS/JS をデバッグ（指定バージョン）",
+  "command.runShortTitle": "実行",
+  "command.debugShortTitle": "デバッグ",
+  "command.runWithSelectedNodeShortTitle": "指定 Node で実行",
+  "command.debugWithSelectedNodeShortTitle": "指定 Node でデバッグ"
+} 

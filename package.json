@@ -11,7 +11,7 @@
     "changelog": "CHANGELOG.md",
     "icon": "resources/icon.png",
     "engines": {
-        "vscode": "^1.40.0"
+        "vscode": "^1.73.0"
     },
     "categories": [
         "Programming Languages",
@@ -22,6 +22,7 @@
         "onStartupFinished"
     ],
     "main": "./dist/extension.js",
+    "l10n": "./l10n",
     "contributes": {
         "configuration": [
             {
@@ -30,7 +31,7 @@
                     "ts-bootstrap.executeInCurrentDirectory": {
                         "type": "boolean",
                         "default": true,
-                        "description": "If true, execute the target file in the current directory, else execute in traget file directory"
+                        "description": "%config.executeInCurrentDirectory%"
                     }
                 }
             }
@@ -38,26 +39,26 @@
         "commands": [
             {
                 "command": "extension.ts-bootstrap.execTerminal",
-                "title": "Run TS/JS",
-                "shortTitle": "Run",
+                "title": "%command.runTsJs%",
+                "shortTitle": "%command.runShortTitle%",
                 "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminal",
-                "title": "Debug TS/JS",
-                "shortTitle": "Debug",
+                "title": "%command.debugTsJs%",
+                "shortTitle": "%command.debugShortTitle%",
                 "icon": "$(debug-alt)"
             },
             {
                 "command": "extension.ts-bootstrap.execTerminalWithNodeVersion",
-                "title": "Run TS/JS with ...",
-                "shortTitle": "Run with selected Node",
+                "title": "%command.runTsJsWith%",
+                "shortTitle": "%command.runWithSelectedNodeShortTitle%",
                 "icon": "$(play)"
             },
             {
                 "command": "extension.ts-bootstrap.debugTerminalWithNodeVersion",
-                "title": "Debug TS/JS with ...",
-                "shortTitle": "Debug with selected Node",
+                "title": "%command.debugTsJsWith%",
+                "shortTitle": "%command.debugWithSelectedNodeShortTitle%",
                 "icon": "$(debug-alt)"
             }
         ],
@@ -99,7 +100,7 @@
     "devDependencies": {
         "@types/mocha": "^10.0.2",
         "@types/node": "18.x",
-        "@types/vscode": "1.40.0",
+        "@types/vscode": "^1.73.0",
         "@typescript-eslint/eslint-plugin": "^6.7.3",
         "@typescript-eslint/parser": "^6.7.3",
         "@vscode/test-electron": "^2.3.4",

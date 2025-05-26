@@ -11,3 +11,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+
+# Explicitly include l10n files
+!l10n/**
+!package.nls*.json

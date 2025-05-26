@@ -58,7 +58,7 @@ const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
             }
         }
     } else {
-        vscode.window.showInformationMessage('No files selected.');
+        vscode.window.showInformationMessage(vscode.l10n.t('file.noFileSelected'));
     }
 };
 

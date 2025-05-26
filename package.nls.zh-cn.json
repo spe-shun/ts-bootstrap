@@ -1,0 +1,12 @@
+{
+  "config.executeInCurrentDirectory": "如果为 true，在当前目录执行目标文件，否则在目标文件目录执行",
+  
+  "command.runTsJs": "运行 TS/JS",
+  "command.debugTsJs": "调试 TS/JS",
+  "command.runTsJsWith": "运行 TS/JS 使用...",
+  "command.debugTsJsWith": "调试 TS/JS 使用...",
+  "command.runShortTitle": "运行",
+  "command.debugShortTitle": "调试",
+  "command.runWithSelectedNodeShortTitle": "使用指定 Node 运行",
+  "command.debugWithSelectedNodeShortTitle": "使用指定 Node 调试"
+} 

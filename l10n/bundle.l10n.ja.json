@@ -1,0 +1,17 @@
+{
+  "tsnode.notInstalled": "ts-bootstrap 拡張機能は ts-node に依存しています。TypeScript ファイルを直接実行するには ts-node をインストールしてください。",
+  "tsnode.installButton": "ts-node をインストール",
+  "tsnode.installCompleted": "インストールが完了しました。インストール後に VS Code を再起動してください。",
+  "tsnode.installTerminalName": "ts-node インストール",
+  
+  "terminal.unableToCreateDebugTerminal": "JavaScript デバッグターミナルを作成できません。",
+  "terminal.unableToCreateTerminal": "ターミナルを作成できません。",
+  "terminal.debugSessionRunning": "実行中のデバッグセッションがあります。閉じてから再試行してください。",
+  
+  "file.noFileSelected": "ファイルが選択されていません。",
+  
+  "nodeVersion.selectPlaceholder": "Node.js バージョンを選択",
+  "nodeVersion.getVersionsFailed": "Node.js バージョンの取得に失敗しました。",
+  "nodeVersion.nvmNotInstalled.windows": "Node.js バージョンの取得に失敗しました。nvm-windows がインストールされていることを確認してください。",
+  "nodeVersion.nvmNotInstalled.unix": "Node.js バージョンの取得に失敗しました。nvm がインストールされていることを確認してください。"
+} 
