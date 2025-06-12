@@ -7,6 +7,32 @@ import * as semver from 'semver';
 import { isWindows, isWSL, getShellType } from '../utils';
 
 /**
+ * Parse Node.js versions from nvm-windows output
+ */
+export function parseWindowsNvmOutput(output: string): string[] {
+    const versionRegex = /v(\d+\.\d+\.\d+)/g;
+    const versionSet = new Set<string>();
+    let match: RegExpExecArray | null;
+    while ((match = versionRegex.exec(output)) !== null) {
+        versionSet.add(match[1]);
+    }
+    return Array.from(versionSet).sort((a, b) => semver.rcompare(a, b));
+}
+
+/**
+ * Parse Node.js versions from standard nvm output
+ */
+export function parseUnixNvmOutput(output: string): string[] {
+    const versionRegex = /v(\d+\.\d+\.\d+)(?!.*?-> N\/A)/g;
+    const versionSet = new Set<string>();
+    let match: RegExpExecArray | null;
+    while ((match = versionRegex.exec(output)) !== null) {
+        versionSet.add(match[1]);
+    }
+    return Array.from(versionSet).sort((a, b) => semver.rcompare(a, b));
+}
+
+/**
  * Get available Node.js versions installed via nvm or nvm-windows
  */
 export function getNodeVersions(): Promise<string[]> {
@@ -26,20 +52,8 @@ export function getNodeVersions(): Promise<string[]> {
                     return;
                 }
 
-                // nvm-windows has different output format, needs separate handling
-                const versionRegex = /v(\d+\.\d+\.\d+)/g;
-                const versionSet = new Set<string>();
-                let match;
-
-                while ((match = versionRegex.exec(output)) !== null) {
-                    versionSet.add(match[1]);
-                }
-
-                const versions = Array.from(versionSet).sort((a, b) => {
-                    return semver.rcompare(a, b);
-                });
-
-                resolve(versions);
+                // nvm-windows has different output format
+                resolve(parseWindowsNvmOutput(output));
             } else {
                 // Linux/macOS/WSL environment using standard nvm
                 const homeDir = os.homedir();
@@ -99,19 +113,7 @@ export function getNodeVersions(): Promise<string[]> {
                 }
 
                 // Handle standard nvm output
-                const versionRegex = /v(\d+\.\d+\.\d+)(?!.*?-> N\/A)/g;
-                const versionSet = new Set<string>();
-                let match;
-
-                while ((match = versionRegex.exec(output)) !== null) {
-                    versionSet.add(match[1]);
-                }
-
-                const versions = Array.from(versionSet).sort((a, b) => {
-                    return semver.rcompare(a, b);
-                });
-
-                resolve(versions);
+                resolve(parseUnixNvmOutput(output));
             }
         } catch (error) {
             console.error('NVM Error:', error);
