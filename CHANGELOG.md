@@ -4,7 +4,7 @@ All notable changes to the "ts-bootstrap" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.2.1]
+## [0.2.3]
 
 - Enhanced internationalization support with updated ts-node installation prompts and error messages
 - Updated multi-language support with restart prompts and related information
@@ -36,7 +36,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added semver dependency for better Node.js version handling
 - Updated README with feature descriptions and usage instructions
 
-[0.2.1]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.1
+[0.2.3]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.3
 [0.2.0]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.0
 [0.1.1]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.1.1
 [0.1.0]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.1.0
