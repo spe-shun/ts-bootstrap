@@ -37,7 +37,7 @@ export function checkTsNodeInstallation(): boolean {
                         // Installation failed, prompt for manual installation
                         vscode.window.showErrorMessage(t('tsnode.installFailed'));
                     }
-                }, 5000); // Wait 5 seconds for installation to complete
+                }, 2000); // Wait 2 seconds for installation to complete
             }
         });
     }
