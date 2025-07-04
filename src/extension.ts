@@ -4,14 +4,12 @@ import * as vscode from 'vscode';
 import runFile from './scripts/run-files';
 import { checkTsNodeInstallation } from './scripts/check-tsnode';
 import { selectNodeVersion } from './scripts/node-version';
+import { t } from './utils/l10n';
 
 const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
 const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
 export function activate(context: vscode.ExtensionContext) {
-    // 验证国际化是否生效，后续手动删除，不要主动删除！！！
-    vscode.window.showInformationMessage(vscode.l10n.t('tsnode.notInstalled'));
-    vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
     // Check if ts-node is installed
     checkTsNodeInstallation();
 
@@ -29,12 +27,12 @@ export function activate(context: vscode.ExtensionContext) {
         const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
 
         if (!terminal) {
-            vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
+            vscode.window.showInformationMessage(t('terminal.unableToCreateDebugTerminal'));
             return;
         }
 
         if (vscode.debug.activeDebugSession) {
-            vscode.window.showInformationMessage(vscode.l10n.t('terminal.debugSessionRunning'));
+            vscode.window.showInformationMessage(t('terminal.debugSessionRunning'));
             return;
         }
 
@@ -51,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
         const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
 
         if (!terminal) {
-            vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateTerminal'));
+            vscode.window.showInformationMessage(t('terminal.unableToCreateTerminal'));
             return;
         }
 
@@ -77,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
             const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
 
             if (!terminal) {
-                vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateTerminal'));
+                vscode.window.showInformationMessage(t('terminal.unableToCreateTerminal'));
                 return;
             }
 
@@ -108,12 +106,12 @@ export function activate(context: vscode.ExtensionContext) {
             const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
 
             if (!terminal) {
-                vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
+                vscode.window.showInformationMessage(t('terminal.unableToCreateDebugTerminal'));
                 return;
             }
 
             if (vscode.debug.activeDebugSession) {
-                vscode.window.showInformationMessage(vscode.l10n.t('terminal.debugSessionRunning'));
+                vscode.window.showInformationMessage(t('terminal.debugSessionRunning'));
                 return;
             }
 

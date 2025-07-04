@@ -1,7 +1,8 @@
 {
     "tsnode.notInstalled": "ts-bootstrap 拡張機能は ts-node に依存しています。TypeScript ファイルを直接実行するために ts-node をインストールしてください。",
     "tsnode.installButton": "ts-node をインストール",
-    "tsnode.installCompleted": "インストールが完了しました。インストール後に VS Code を再起動してください。",
+    "tsnode.installCompleted": "ts-node のインストールが完了しました！効果がない場合は VS Code を再起動してください。",
+    "tsnode.installFailed": "ts-node のインストールに失敗しました。手動でインストールしてください：npm install -g ts-node",
     "tsnode.installTerminalName": "ts-node インストール",
     "tsnode.restartSuggestion": "変更を適用するために VS Code を再起動してください。",
     "tsnode.restartButton": "VS Code を再起動",

@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as semver from 'semver';
 import { isWindows, isWSL, getShellType } from '../utils';
+import { t } from '../utils/l10n';
 
 /**
  * Get available Node.js versions installed via nvm or nvm-windows
@@ -21,7 +22,7 @@ export function getNodeVersions(): Promise<string[]> {
                         encoding: 'utf8',
                     });
                 } catch (error) {
-                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.windows'));
+                    vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.windows'));
                     resolve([]);
                     return;
                 }
@@ -68,7 +69,7 @@ export function getNodeVersions(): Promise<string[]> {
                 }
 
                 if (!nvmScript) {
-                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.unix'));
+                    vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.unix'));
                     resolve([]);
                     return;
                 }
@@ -93,7 +94,7 @@ export function getNodeVersions(): Promise<string[]> {
                         shell: shell,
                     });
                 } catch (error) {
-                    vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.nvmNotInstalled.unix'));
+                    vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.unix'));
                     resolve([]);
                     return;
                 }
@@ -115,7 +116,7 @@ export function getNodeVersions(): Promise<string[]> {
             }
         } catch (error) {
             console.error('NVM Error:', error);
-            vscode.window.showErrorMessage(vscode.l10n.t('nodeVersion.getVersionsFailed'));
+            vscode.window.showErrorMessage(t('nodeVersion.getVersionsFailed'));
             resolve([]);
         }
     });
@@ -151,7 +152,7 @@ export async function selectNodeVersion(): Promise<string | undefined> {
 
     // Show quick pick to let user select a version
     const selected = await vscode.window.showQuickPick(displayVersions, {
-        placeHolder: vscode.l10n.t('nodeVersion.selectPlaceholder'),
+        placeHolder: t('nodeVersion.selectPlaceholder'),
         canPickMany: false,
     });
 

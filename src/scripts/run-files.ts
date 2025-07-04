@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import config from '../config';
 import { getWorkSpaceFolderName, isWindows, normalizePath, isWSL, getCommandSeparator, getShellType } from '../utils';
+import { t } from '../utils/l10n';
 import { getNvmUseCommand } from './node-version';
 
 const runFile = async (terminal: vscode.Terminal, isDebug: boolean, nodeVersion?: string) => {
@@ -62,7 +63,7 @@ const runFile = async (terminal: vscode.Terminal, isDebug: boolean, nodeVersion?
             }
         }
     } else {
-        vscode.window.showInformationMessage(vscode.l10n.t('file.noFileSelected'));
+        vscode.window.showInformationMessage(t('file.noFileSelected'));
     }
 };
 

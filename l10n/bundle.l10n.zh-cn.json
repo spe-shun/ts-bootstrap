@@ -1,7 +1,8 @@
 {
     "tsnode.notInstalled": "ts-bootstrap 扩展依赖 ts-node。请安装 ts-node 以直接运行 TypeScript 文件。",
     "tsnode.installButton": "安装 ts-node",
-    "tsnode.installCompleted": "安装完成。请在安装后重启 VS Code。",
+    "tsnode.installCompleted": "ts-node 安装完成！如果不生效请重启 VS Code。",
+    "tsnode.installFailed": "ts-node 安装失败。请手动安装：npm install -g ts-node",
     "tsnode.installTerminalName": "ts-node 安装",
     "tsnode.restartSuggestion": "请重启 VS Code 以应用更改。",
     "tsnode.restartButton": "重启 VS Code",
