@@ -3,6 +3,8 @@
     "tsnode.installButton": "安装 ts-node",
     "tsnode.installCompleted": "安装完成。请在安装后重启 VS Code。",
     "tsnode.installTerminalName": "ts-node 安装",
+    "tsnode.restartSuggestion": "请重启 VS Code 以应用更改。",
+    "tsnode.restartButton": "重启 VS Code",
 
     "terminal.unableToCreateDebugTerminal": "无法创建 JavaScript 调试终端。",
     "terminal.unableToCreateTerminal": "无法创建终端。",

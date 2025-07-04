@@ -3,6 +3,8 @@
     "tsnode.installButton": "Install ts-node",
     "tsnode.installCompleted": "Installation completed. Please restart VS Code after installation.",
     "tsnode.installTerminalName": "ts-node Installation",
+    "tsnode.restartSuggestion": "Please restart VS Code to apply the changes.",
+    "tsnode.restartButton": "Restart VS Code",
 
     "terminal.unableToCreateDebugTerminal": "Unable to create JavaScript Debug Terminal.",
     "terminal.unableToCreateTerminal": "Unable to create Terminal.",
