@@ -124,46 +124,16 @@ export function getNodeVersions(): Promise<string[]> {
 /**
  * Format nvm use command based on environment and shell type
  */
-export function getNvmUseCommand(version: string): string {
-    if (isWindows && !isWSL) {
-        // Windows using nvm-windows format
-        return `NODE_OPTIONS= nvm use ${version}`;
-    } else {
-        const shellType = getShellType();
-        const homeDir = os.homedir();
+export function getNvmUseCommand(version: string, isDebug: boolean): string {
+    const commandParts: string[] = [];
 
-        // Try to find nvm script
-        const nvmPaths = [
-            path.join(homeDir, '.nvm/nvm.sh'),
-            '/usr/local/share/nvm/nvm.sh',
-            '/opt/nvm/nvm.sh',
-            '/usr/share/nvm/nvm.sh',
-        ];
-
-        let nvmScript = '';
-        for (const nvmPath of nvmPaths) {
-            try {
-                if (fs.existsSync(nvmPath)) {
-                    nvmScript = nvmPath;
-                    break;
-                }
-            } catch (error) {
-                continue;
-            }
-        }
-
-        if (nvmScript) {
-            switch (shellType) {
-                case 'fish':
-                    return `NODE_OPTIONS= bash -c '. "${nvmScript}" && nvm use ${version}'`;
-                default:
-                    return `NODE_OPTIONS= . "${nvmScript}" && NODE_OPTIONS= nvm use ${version}`;
-            }
-        } else {
-            // Fallback to simple nvm use command
-            return `NODE_OPTIONS= nvm use ${version}`;
-        }
+    if (isDebug) {
+        commandParts.push('NODE_OPTIONS=');
     }
+
+    commandParts.push('nvm', 'use', version);
+
+    return commandParts.join(' ');
 }
 
 /**

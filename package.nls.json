@@ -1,12 +1,12 @@
 {
-  "config.executeInCurrentDirectory": "If true, execute the target file in the current directory, else execute in target file directory",
-  
-  "command.runTsJs": "Run TS/JS",
-  "command.debugTsJs": "Debug TS/JS",
-  "command.runTsJsWith": "Run TS/JS with ...",
-  "command.debugTsJsWith": "Debug TS/JS with ...",
-  "command.runShortTitle": "Run",
-  "command.debugShortTitle": "Debug",
-  "command.runWithSelectedNodeShortTitle": "Run with selected Node",
-  "command.debugWithSelectedNodeShortTitle": "Debug with selected Node"
-} 
+    "config.executeInCurrentDirectory": "If true, execute the target file in the current directory, else execute in target file directory",
+
+    "command.runTsJs": "Run TS/JS",
+    "command.debugTsJs": "Debug TS/JS",
+    "command.runTsJsWith": "Run TS/JS with ...",
+    "command.debugTsJsWith": "Debug TS/JS with ...",
+    "command.runShortTitle": "Run",
+    "command.debugShortTitle": "Debug",
+    "command.runWithSelectedNodeShortTitle": "Run with selected Node",
+    "command.debugWithSelectedNodeShortTitle": "Debug with selected Node"
+}

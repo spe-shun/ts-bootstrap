@@ -4,12 +4,14 @@ import * as vscode from 'vscode';
 import runFile from './scripts/run-files';
 import { checkTsNodeInstallation } from './scripts/check-tsnode';
 import { selectNodeVersion } from './scripts/node-version';
-import * as childProcess from 'child_process';
 
 const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
 const EXEC_TERMINAL_NAME = 'ts-node Terminal';
 
 export function activate(context: vscode.ExtensionContext) {
+    // 验证国际化是否生效，后续手动删除，不要主动删除！！！
+    vscode.window.showInformationMessage(vscode.l10n.t('tsnode.notInstalled'));
+    vscode.window.showInformationMessage(vscode.l10n.t('terminal.unableToCreateDebugTerminal'));
     // Check if ts-node is installed
     checkTsNodeInstallation();
 
@@ -36,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        runFile(terminal);
+        runFile(terminal, true);
     });
 
     const execDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.execTerminal', () => {
@@ -53,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        runFile(terminal);
+        runFile(terminal, false);
     });
 
     // Run with specified Node version
@@ -79,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            runFile(terminal, nodeVersion);
+            runFile(terminal, false, nodeVersion);
         },
     );
 
@@ -115,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            runFile(terminal, nodeVersion);
+            runFile(terminal, true, nodeVersion);
         },
     );
 

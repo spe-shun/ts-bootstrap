@@ -1,18 +1,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import config from '../config';
-import {
-    getWorkSpaceFolderName,
-    isWindows,
-    isPowerShell,
-    normalizePath,
-    isWSL,
-    getCommandSeparator,
-    getShellType,
-} from '../utils';
+import { getWorkSpaceFolderName, isWindows, normalizePath, isWSL, getCommandSeparator, getShellType } from '../utils';
 import { getNvmUseCommand } from './node-version';
 
-const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
+const runFile = async (terminal: vscode.Terminal, isDebug: boolean, nodeVersion?: string) => {
     const activeTextEditor = vscode.window.activeTextEditor;
 
     if (activeTextEditor) {
@@ -26,7 +18,7 @@ const runFile = async (terminal: vscode.Terminal, nodeVersion?: string) => {
 
         // Handle nvm command
         if (nodeVersion) {
-            executor = `${getNvmUseCommand(nodeVersion)} ${commandSeparator} ${executor}`;
+            executor = `${getNvmUseCommand(nodeVersion, isDebug)} ${commandSeparator} ${executor}`;
         }
 
         terminal.show();

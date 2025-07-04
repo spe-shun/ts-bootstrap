@@ -1,17 +1,17 @@
 {
-  "tsnode.notInstalled": "ts-bootstrap extension depends on ts-node. Please install it to run TypeScript files directly.",
-  "tsnode.installButton": "Install ts-node",
-  "tsnode.installCompleted": "Installation completed. Please restart VS Code after installation.",
-  "tsnode.installTerminalName": "ts-node Installation",
-  
-  "terminal.unableToCreateDebugTerminal": "Unable to create JavaScript Debug Terminal.",
-  "terminal.unableToCreateTerminal": "Unable to create Terminal.",
-  "terminal.debugSessionRunning": "There is an ongoing Debug session running. Please close it and retry.",
-  
-  "file.noFileSelected": "No files selected.",
-  
-  "nodeVersion.selectPlaceholder": "Select Node.js version",
-  "nodeVersion.getVersionsFailed": "Failed to get Node.js versions.",
-  "nodeVersion.nvmNotInstalled.windows": "Failed to get Node.js versions. Please ensure nvm-windows is installed.",
-  "nodeVersion.nvmNotInstalled.unix": "Failed to get Node.js versions. Please ensure nvm is installed."
-} 
+    "tsnode.notInstalled": "ts-bootstrap extension depends on ts-node. Please install it to run TypeScript files directly.",
+    "tsnode.installButton": "Install ts-node",
+    "tsnode.installCompleted": "Installation completed. Please restart VS Code after installation.",
+    "tsnode.installTerminalName": "ts-node Installation",
+
+    "terminal.unableToCreateDebugTerminal": "Unable to create JavaScript Debug Terminal.",
+    "terminal.unableToCreateTerminal": "Unable to create Terminal.",
+    "terminal.debugSessionRunning": "There is an ongoing Debug session running. Please close it and retry.",
+
+    "file.noFileSelected": "No files selected.",
+
+    "nodeVersion.selectPlaceholder": "Select Node.js version",
+    "nodeVersion.getVersionsFailed": "Failed to get Node.js versions.",
+    "nodeVersion.nvmNotInstalled.windows": "Failed to get Node.js versions. Please ensure nvm-windows is installed.",
+    "nodeVersion.nvmNotInstalled.unix": "Failed to get Node.js versions. Please ensure nvm is installed."
+}

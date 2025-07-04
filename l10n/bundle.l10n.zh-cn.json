@@ -1,17 +1,17 @@
 {
-  "tsnode.notInstalled": "ts-bootstrap 扩展依赖 ts-node。请安装 ts-node 以直接运行 TypeScript 文件。",
-  "tsnode.installButton": "安装 ts-node",
-  "tsnode.installCompleted": "安装完成。请在安装后重启 VS Code。",
-  "tsnode.installTerminalName": "ts-node 安装",
-  
-  "terminal.unableToCreateDebugTerminal": "无法创建 JavaScript 调试终端。",
-  "terminal.unableToCreateTerminal": "无法创建终端。",
-  "terminal.debugSessionRunning": "当前有正在运行的调试会话。请关闭后重试。",
-  
-  "file.noFileSelected": "未选择文件。",
-  
-  "nodeVersion.selectPlaceholder": "选择 Node.js 版本",
-  "nodeVersion.getVersionsFailed": "获取 Node.js 版本失败。",
-  "nodeVersion.nvmNotInstalled.windows": "获取 Node.js 版本失败。请确保 nvm-windows 已安装。",
-  "nodeVersion.nvmNotInstalled.unix": "获取 Node.js 版本失败。请确保 nvm 已安装。"
-} 
+    "tsnode.notInstalled": "ts-bootstrap 扩展依赖 ts-node。请安装 ts-node 以直接运行 TypeScript 文件。",
+    "tsnode.installButton": "安装 ts-node",
+    "tsnode.installCompleted": "安装完成。请在安装后重启 VS Code。",
+    "tsnode.installTerminalName": "ts-node 安装",
+
+    "terminal.unableToCreateDebugTerminal": "无法创建 JavaScript 调试终端。",
+    "terminal.unableToCreateTerminal": "无法创建终端。",
+    "terminal.debugSessionRunning": "当前有正在运行的调试会话。请关闭后重试。",
+
+    "file.noFileSelected": "未选择文件。",
+
+    "nodeVersion.selectPlaceholder": "选择 Node.js 版本",
+    "nodeVersion.getVersionsFailed": "获取 Node.js 版本失败。",
+    "nodeVersion.nvmNotInstalled.windows": "获取 Node.js 版本失败。请确保 nvm-windows 已安装。",
+    "nodeVersion.nvmNotInstalled.unix": "获取 Node.js 版本失败。请确保 nvm 已安装。"
+}
