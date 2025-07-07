@@ -100,9 +100,7 @@
         "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
         "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
         "test": "node ./out/test/runTest.js",
-        "release:patch": "vsce publish patch",
-        "release:minor": "vsce publish minor",
-        "release:major": "vsce publish major"
+        "release": "vsce publish"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.2",
