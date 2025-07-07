@@ -2,7 +2,7 @@
     "name": "ts-bootstrap",
     "displayName": "TS/JS Runner & Debugger",
     "description": "VSCode extension for quickly running and debugging TypeScript and JavaScript files",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "publisher": "spe-shun",
     "repository": {
         "type": "git",
