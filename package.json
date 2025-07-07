@@ -66,19 +66,23 @@
             "editor/title/run": [
                 {
                     "command": "extension.ts-bootstrap.execTerminal",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
+                    "group": "1_run@1"
                 },
                 {
                     "command": "extension.ts-bootstrap.execTerminalWithNodeVersion",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
+                    "group": "1_run@2"
                 },
                 {
                     "command": "extension.ts-bootstrap.debugTerminal",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
+                    "group": "2_debug@1"
                 },
                 {
                     "command": "extension.ts-bootstrap.debugTerminalWithNodeVersion",
-                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'"
+                    "when": "editorLangId == 'javascript' || editorLangId == 'typescript'",
+                    "group": "2_debug@2"
                 }
             ]
         }
