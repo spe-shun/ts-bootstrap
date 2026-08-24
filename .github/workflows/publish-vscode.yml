@@ -1,0 +1,71 @@
+name: Publish VS Code Extension
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - '[0-9]*.[0-9]*.[0-9]*'
+
+permissions:
+    contents: read
+    id-token: write
+
+concurrency:
+    group: vscode-marketplace-publish
+    cancel-in-progress: false
+
+jobs:
+    publish:
+        name: Publish
+        runs-on: ubuntu-latest
+        environment: vscode-marketplace
+
+        env:
+            AZURE_CORE_OUTPUT: none
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Verify tag matches package version
+              if: github.event_name == 'push'
+              shell: bash
+              run: test "$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+
+            - name: Install dependencies
+              run: |
+                  corepack enable
+                  yarn install --frozen-lockfile
+
+            - name: Validate extension
+              run: |
+                  yarn lint:check
+                  yarn format:check
+                  yarn compile-tests
+
+            - name: Sign in to Azure with GitHub OIDC
+              uses: azure/login@v3
+              with:
+                  client-id: ${{ secrets.AZURE_CLIENT_ID }}
+                  tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+                  allow-no-subscriptions: true
+
+            # This notice is used once to authorize the publishing identity in Marketplace.
+            # It can be removed after the publisher membership is configured.
+            - name: Show Marketplace identity ID
+              shell: bash
+              run: |
+                  marketplace_identity_id="$(az rest \
+                    --url https://app.vssps.visualstudio.com/_apis/profile/profiles/me \
+                    --resource 499b84ac-1321-427f-aa17-267ca6975798 \
+                    --query id \
+                    --output tsv)"
+                  echo "::notice title=Marketplace identity ID::$marketplace_identity_id"
+
+            - name: Publish extension
+              run: npx --yes @vscode/vsce@3.9.2 publish --azure-credential --skip-duplicate
