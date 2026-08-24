@@ -1,19 +1,22 @@
 {
-    "tsnode.notInstalled": "TypeScript ファイルの実行には ts-node が必要です。今すぐインストールしますか？",
-    "tsnode.installButton": "ts-node をインストール",
-    "tsnode.installing": "ts-node をインストールしています…",
-    "tsnode.installCompleted": "ts-node をインストールしました。TypeScript ファイルの実行を続けます。",
-    "tsnode.installFailed": "ts-node のインストールに失敗しました。インストールターミナルを確認するか、手動で実行してください：npm install --global ts-node",
-    "tsnode.retryButton": "再試行",
-    "tsnode.installTerminalName": "ts-node インストール",
+    "tsx.notInstalled": "TypeScript ファイルの実行には tsx が必要です。今すぐインストールしますか？",
+    "tsx.installButton": "tsx をインストール",
+    "tsx.installing": "tsx をインストールしています…",
+    "tsx.installCompleted": "tsx をインストールしました。TypeScript ファイルの実行を続けます。",
+    "tsx.installFailed": "tsx のインストールに失敗したか、利用可能性を確認できませんでした。インストールターミナルを確認するか、手動で実行してください：npm install --global tsx@4",
+    "tsx.retryButton": "再試行",
+    "tsx.installTerminalName": "tsx インストール",
+    "tsx.unsupportedNodeVersion": "tsx には Node.js 18 以降が必要です。新しい Node.js バージョンを選択してください。",
+    "tsx.debugRuntimeUnavailable": "選択した Node.js 環境の tsx ランタイムを特定できません。",
 
-    "terminal.unableToCreateDebugTerminal": "JavaScript デバッグターミナルを作成できません。",
+    "debug.unableToStart": "デバッグセッションを開始できません。",
     "terminal.debugSessionRunning": "実行中のデバッグセッションがあります。終了してから再試行してください。",
 
     "file.noFileSelected": "まず JavaScript または TypeScript ファイルを開いてください。",
     "file.unsupportedType": "JavaScript または TypeScript ファイルのみ実行できます。",
 
     "nodeVersion.selectPlaceholder": "Node.js バージョンを選択",
+    "nodeVersion.executableNotFound": "選択した Node.js バージョンの実行ファイルを特定できません。",
     "nodeVersion.getVersionsFailed": "Node.js バージョンの取得に失敗しました。",
     "nodeVersion.nvmNotInstalled.windows": "Node.js バージョンの取得に失敗しました。nvm-windows がインストールされていることを確認してください。",
     "nodeVersion.nvmNotInstalled.unix": "Node.js バージョンの取得に失敗しました。nvm がインストールされていることを確認してください。"

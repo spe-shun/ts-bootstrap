@@ -21,6 +21,10 @@ export function getFileRuntime(fileName: string): FileRuntime | undefined {
     return undefined;
 }
 
+export function getFileExecutor(runtime: FileRuntime): 'node' | 'tsx' {
+    return runtime === 'javascript' ? 'node' : 'tsx';
+}
+
 function quoteShellArgument(value: string): string {
     const shellType = getShellType();
 
@@ -45,7 +49,14 @@ function getChangeDirectoryCommand(directory: string): string {
     return `cd ${quotedDirectory}`;
 }
 
-const runFile = (terminal: vscode.Terminal, resource: vscode.Uri, isDebug: boolean, nodeVersion?: string) => {
+export function getExecutionDirectory(resource: vscode.Uri): string {
+    const fileDirectory = path.dirname(resource.fsPath);
+    const workspaceDirectory = getWorkSpaceFolderName(resource);
+
+    return config.raw.executeInCurrentDirectory ? (workspaceDirectory ?? fileDirectory) : fileDirectory;
+}
+
+const runFile = (terminal: vscode.Terminal, resource: vscode.Uri, nodeVersion?: string) => {
     const baseName = resource.fsPath;
     const runtime = getFileRuntime(baseName);
 
@@ -53,18 +64,14 @@ const runFile = (terminal: vscode.Terminal, resource: vscode.Uri, isDebug: boole
         return;
     }
 
-    let executor = runtime === 'javascript' ? 'node' : 'ts-node';
+    let executor: string = getFileExecutor(runtime);
     const commandSeparator = getCommandSeparator();
 
     if (nodeVersion) {
-        executor = `${getNvmUseCommand(nodeVersion, isDebug)} ${commandSeparator} ${executor}`;
+        executor = `${getNvmUseCommand(nodeVersion)} ${commandSeparator} ${executor}`;
     }
 
-    const fileDirectory = path.dirname(baseName);
-    const workspaceDirectory = getWorkSpaceFolderName(resource);
-    const executionDirectory = config.raw.executeInCurrentDirectory
-        ? (workspaceDirectory ?? fileDirectory)
-        : fileDirectory;
+    const executionDirectory = getExecutionDirectory(resource);
     const targetPath = path.relative(executionDirectory, baseName) || path.basename(baseName);
     const executeCommand = `${executor} ${quoteShellArgument(normalizePath(targetPath))}`;
     const command = [getChangeDirectoryCommand(normalizePath(executionDirectory)), executeCommand].join(

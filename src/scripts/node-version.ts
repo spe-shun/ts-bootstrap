@@ -4,8 +4,145 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as semver from 'semver';
-import { isWindows, isWSL, getShellType } from '../utils';
+import { isWindows, isWSL } from '../utils';
 import { t } from '../utils/l10n';
+
+const resolvedNodeExecutables = new Map<string, string>();
+
+function findNvmScript(): string | undefined {
+    const homeDir = os.homedir();
+    const candidates = Array.from(
+        new Set(
+            [
+                process.env.NVM_DIR ? path.join(process.env.NVM_DIR, 'nvm.sh') : undefined,
+                path.join(homeDir, '.nvm/nvm.sh'),
+                '/usr/local/share/nvm/nvm.sh',
+                '/opt/nvm/nvm.sh',
+                '/usr/share/nvm/nvm.sh',
+            ].filter((candidate): candidate is string => !!candidate),
+        ),
+    );
+
+    return candidates.find(candidate => {
+        try {
+            return fs.existsSync(candidate);
+        } catch {
+            return false;
+        }
+    });
+}
+
+function getNvmDirectory(): string | undefined {
+    const nvmScript = findNvmScript();
+    return nvmScript ? path.dirname(nvmScript) : undefined;
+}
+
+function quotePosixArgument(value: string): string {
+    return `'${value.replace(/'/g, `'"'"'`)}'`;
+}
+
+function findExistingNodeExecutable(candidates: string[]): string | undefined {
+    return candidates.find(candidate => {
+        try {
+            return fs.statSync(candidate).isFile();
+        } catch {
+            return false;
+        }
+    });
+}
+
+function getUnixNodeExecutableCandidates(nvmDirectory: string, version: string): string[] {
+    return [
+        path.join(nvmDirectory, 'versions', 'node', `v${version}`, 'bin', 'node'),
+        path.join(nvmDirectory, 'versions', 'node', version, 'bin', 'node'),
+        path.join(nvmDirectory, `v${version}`, 'bin', 'node'),
+        path.join(nvmDirectory, version, 'bin', 'node'),
+    ];
+}
+
+function getInstalledUnixNodeVersions(nvmDirectory: string): string[] {
+    const versionsDirectory = path.join(nvmDirectory, 'versions', 'node');
+
+    try {
+        return fs
+            .readdirSync(versionsDirectory)
+            .map(directoryName => directoryName.replace(/^v/, ''))
+            .filter(
+                version =>
+                    semver.valid(version) &&
+                    !!findExistingNodeExecutable(getUnixNodeExecutableCandidates(nvmDirectory, version)),
+            )
+            .sort((a, b) => semver.rcompare(a, b));
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Resolve an installed nvm version to its concrete Node.js executable. Passing
+ * this path to js-debug avoids its runtimeVersion PATH rewriting.
+ */
+export async function getNodeExecutable(version: string): Promise<string | undefined> {
+    if (!semver.valid(version)) {
+        return undefined;
+    }
+
+    const cachedExecutable = resolvedNodeExecutables.get(version);
+    if (cachedExecutable && findExistingNodeExecutable([cachedExecutable])) {
+        return cachedExecutable;
+    }
+
+    if (isWindows && !isWSL) {
+        const roots = [
+            process.env.NVM_HOME,
+            process.env.APPDATA ? path.join(process.env.APPDATA, 'nvm') : undefined,
+        ].filter((candidate): candidate is string => !!candidate);
+        const executable = findExistingNodeExecutable(
+            roots.flatMap(root => [path.join(root, `v${version}`, 'node.exe'), path.join(root, version, 'node.exe')]),
+        );
+        if (executable) {
+            resolvedNodeExecutables.set(version, executable);
+        }
+        return executable;
+    }
+
+    const nvmDirectory = getNvmDirectory();
+    if (!nvmDirectory) {
+        return undefined;
+    }
+
+    const directExecutable = findExistingNodeExecutable(getUnixNodeExecutableCandidates(nvmDirectory, version));
+    if (directExecutable) {
+        resolvedNodeExecutables.set(version, directExecutable);
+        return directExecutable;
+    }
+
+    return new Promise(resolve => {
+        const nvmScript = path.join(nvmDirectory, 'nvm.sh');
+        const command = `. ${quotePosixArgument(nvmScript)} && nvm which ${quotePosixArgument(version)}`;
+        childProcess.execFile(
+            '/bin/bash',
+            ['-lc', command],
+            { encoding: 'utf8', timeout: 10000, windowsHide: true },
+            (error, stdout) => {
+                if (error) {
+                    resolve(undefined);
+                    return;
+                }
+
+                const candidates = stdout
+                    .split(/\r?\n/)
+                    .map(line => line.trim())
+                    .filter(candidate => candidate.length > 0);
+                const executable = findExistingNodeExecutable(candidates.reverse());
+                if (executable) {
+                    resolvedNodeExecutables.set(version, executable);
+                }
+                resolve(executable);
+            },
+        );
+    });
+}
 
 /**
  * Get available Node.js versions installed via nvm or nvm-windows
@@ -43,55 +180,25 @@ export function getNodeVersions(): Promise<string[]> {
                 resolve(versions);
             } else {
                 // Linux/macOS/WSL environment using standard nvm
-                const homeDir = os.homedir();
-                let nvmCommand = '';
-                const shellType = getShellType();
+                const nvmDirectory = getNvmDirectory();
 
-                // Try different common nvm installation paths
-                const nvmPaths = [
-                    path.join(homeDir, '.nvm/nvm.sh'),
-                    '/usr/local/share/nvm/nvm.sh',
-                    '/opt/nvm/nvm.sh',
-                    '/usr/share/nvm/nvm.sh',
-                ];
-
-                let nvmScript = '';
-                for (const nvmPath of nvmPaths) {
-                    try {
-                        if (fs.existsSync(nvmPath)) {
-                            nvmScript = nvmPath;
-                            break;
-                        }
-                    } catch (error) {
-                        // Continue to next path
-                        continue;
-                    }
-                }
-
-                if (!nvmScript) {
+                if (!nvmDirectory) {
                     vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.unix'));
                     resolve([]);
                     return;
                 }
 
-                // Build command based on shell type
-                switch (shellType) {
-                    case 'fish':
-                        // Fish shell doesn't support source command in the same way
-                        nvmCommand = `bash -c '. "${nvmScript}" && nvm ls --no-alias'`;
-                        break;
-                    case 'zsh':
-                    case 'bash':
-                    default:
-                        nvmCommand = `. "${nvmScript}" && nvm ls --no-alias`;
-                        break;
+                const installedVersions = getInstalledUnixNodeVersions(nvmDirectory);
+                if (installedVersions.length > 0) {
+                    resolve(installedVersions);
+                    return;
                 }
 
                 try {
-                    const shell = shellType === 'fish' ? '/bin/bash' : process.env.SHELL || '/bin/bash';
-                    output = childProcess.execSync(nvmCommand, {
+                    const nvmScript = path.join(nvmDirectory, 'nvm.sh');
+                    output = childProcess.execSync(`. ${quotePosixArgument(nvmScript)} && nvm ls --no-alias`, {
                         encoding: 'utf8',
-                        shell: shell,
+                        shell: '/bin/bash',
                     });
                 } catch (error) {
                     vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.unix'));
@@ -125,16 +232,8 @@ export function getNodeVersions(): Promise<string[]> {
 /**
  * Format nvm use command based on environment and shell type
  */
-export function getNvmUseCommand(version: string, isDebug: boolean): string {
-    const commandParts: string[] = [];
-
-    if (isDebug) {
-        commandParts.push('NODE_OPTIONS=');
-    }
-
-    commandParts.push('nvm', 'use', version);
-
-    return commandParts.join(' ');
+export function getNvmUseCommand(version: string): string {
+    return ['nvm', 'use', version].join(' ');
 }
 
 /**

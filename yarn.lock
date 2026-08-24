@@ -514,6 +514,13 @@
   resolved "https://registry.npmmirror.com/@types/vscode/-/vscode-1.100.0.tgz"
   integrity sha512-4uNyvzHoraXEeCamR3+fzcBlh7Afs4Ifjs4epINyUX/jvdk0uzLnwiDY35UKDKnkCHP5Nu3dljl2H8lR6s+rQw==
 
+"@types/ws@^8.18.1":
+  version "8.18.1"
+  resolved "http://r.npm.sankuai.com/@types/ws/download/@types/ws-8.18.1.tgz#48464e4bf2ddfd17db13d845467f6070ffea4aa9"
+  integrity sha1-SEZOS/Ld/RfbE9hFRn9gcP/qSqk=
+  dependencies:
+    "@types/node" "*"
+
 "@typescript-eslint/eslint-plugin@^6.7.3":
   version "6.21.0"
   resolved "https://registry.npmmirror.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-6.21.0.tgz"
@@ -4039,6 +4046,11 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.npmmirror.com/wrappy/-/wrappy-1.0.2.tgz"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
+
+ws@^8.18.3:
+  version "8.21.3"
+  resolved "http://r.npm.sankuai.com/ws/download/ws-8.21.3.tgz#660b4faddb6a3e575c86e078126919961f4de4fc"
+  integrity sha1-ZgtPrdtqPldchuB4EmkZlh9N5Pw=
 
 xml2js@^0.5.0:
   version "0.5.0"

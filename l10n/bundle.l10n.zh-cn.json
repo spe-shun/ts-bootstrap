@@ -1,19 +1,22 @@
 {
-    "tsnode.notInstalled": "运行 TypeScript 文件需要 ts-node，是否现在安装？",
-    "tsnode.installButton": "安装 ts-node",
-    "tsnode.installing": "正在安装 ts-node…",
-    "tsnode.installCompleted": "ts-node 安装成功，正在继续运行 TypeScript 文件。",
-    "tsnode.installFailed": "ts-node 安装失败。请检查安装终端，或手动执行：npm install --global ts-node",
-    "tsnode.retryButton": "重试",
-    "tsnode.installTerminalName": "ts-node 安装",
+    "tsx.notInstalled": "运行 TypeScript 文件需要 tsx，是否现在安装？",
+    "tsx.installButton": "安装 tsx",
+    "tsx.installing": "正在安装 tsx…",
+    "tsx.installCompleted": "tsx 安装成功，正在继续运行 TypeScript 文件。",
+    "tsx.installFailed": "tsx 安装失败或无法通过可用性校验。请检查安装终端，或手动执行：npm install --global tsx@4",
+    "tsx.retryButton": "重试",
+    "tsx.installTerminalName": "tsx 安装",
+    "tsx.unsupportedNodeVersion": "tsx 需要 Node.js 18 或更高版本，请选择较新的 Node.js 版本。",
+    "tsx.debugRuntimeUnavailable": "无法在所选 Node.js 环境中定位 tsx 运行时。",
 
-    "terminal.unableToCreateDebugTerminal": "无法创建 JavaScript 调试终端。",
+    "debug.unableToStart": "无法启动调试会话。",
     "terminal.debugSessionRunning": "当前有正在运行的调试会话。请关闭后重试。",
 
     "file.noFileSelected": "请先打开一个 JavaScript 或 TypeScript 文件。",
     "file.unsupportedType": "只能运行 JavaScript 或 TypeScript 文件。",
 
     "nodeVersion.selectPlaceholder": "选择 Node.js 版本",
+    "nodeVersion.executableNotFound": "无法定位所选 Node.js 版本的可执行文件。",
     "nodeVersion.getVersionsFailed": "获取 Node.js 版本失败。",
     "nodeVersion.nvmNotInstalled.windows": "获取 Node.js 版本失败。请确保 nvm-windows 已安装。",
     "nodeVersion.nvmNotInstalled.unix": "获取 Node.js 版本失败。请确保 nvm 已安装。"

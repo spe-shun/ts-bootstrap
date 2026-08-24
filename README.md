@@ -9,7 +9,7 @@ A VS Code extension for simplifying JavaScript and TypeScript file execution and
 - One-click run and debug for currently open JS/TS files
 - Support for both debug mode and normal execution mode
 - Support for selecting different Node.js versions for running or debugging files
-- Automatic detection and prompting to install missing dependencies (e.g., ts-node)
+- Automatic detection and prompting to install the TypeScript runtime (`tsx`)
 - Configurable execution in current directory or file directory
 
 ## Usage
@@ -24,5 +24,6 @@ A VS Code extension for simplifying JavaScript and TypeScript file execution and
 
 ## Requirements
 
-- ts-node installation required (for direct execution of TypeScript files)
+- Node.js 18 or later
+- `tsx` is required for direct TypeScript execution and can be installed from the extension prompt
 - nvm recommended for Node.js version management

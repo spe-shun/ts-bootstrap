@@ -4,6 +4,15 @@ All notable changes to the "ts-bootstrap" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.2.7]
+
+- Replaced ts-node with tsx for reliable TypeScript execution on modern Node.js and TypeScript versions
+- Added runtime verification and per-version installation when running through nvm
+- Added a clear Node.js 18 minimum-version check for TypeScript execution
+- Fixed tsx debugging hanging under nvm by launching the target Node.js process directly instead of auto-attaching to tsx workers
+- Simplified selected-version debugging by launching the resolved nvm Node executable without rewriting the full PATH
+- Accelerated selected-version startup by resolving and caching Node.js and tsx runtimes without repeated login-shell commands
+
 ## [0.2.6]
 
 - Fixed the false installation failure prompt after ts-node was installed successfully
@@ -45,6 +54,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added semver dependency for better Node.js version handling
 - Updated README with feature descriptions and usage instructions
 
+[0.2.7]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.7
 [0.2.6]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.6
 [0.2.4]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.4
 [0.2.3]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.3
