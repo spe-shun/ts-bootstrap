@@ -4,6 +4,11 @@ All notable changes to the "ts-bootstrap" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.2.6]
+
+- Fixed the false installation failure prompt after ts-node was installed successfully
+- Improved dependency checks, command flow, error handling, and test coverage for a smoother run and debug experience
+
 ## [0.2.4]
 
 - Group debug and run commands, placing run before debug
@@ -40,6 +45,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added semver dependency for better Node.js version handling
 - Updated README with feature descriptions and usage instructions
 
+[0.2.6]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.6
 [0.2.4]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.4
 [0.2.3]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.3
 [0.2.0]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.0
