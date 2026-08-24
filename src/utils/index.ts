@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 
-export const getWorkSpaceFolderName = () => {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders?.length !== 1) {
-        return null;
+export const getWorkSpaceFolderName = (resource?: vscode.Uri) => {
+    if (resource) {
+        return vscode.workspace.getWorkspaceFolder(resource)?.uri.fsPath ?? null;
     }
-    return workspaceFolders[0].uri.path;
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    return workspaceFolders?.length === 1 ? workspaceFolders[0].uri.fsPath : null;
 };
 
 /**

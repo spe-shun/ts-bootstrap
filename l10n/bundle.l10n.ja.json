@@ -1,17 +1,17 @@
 {
-    "tsnode.notInstalled": "ts-bootstrap 拡張機能は ts-node に依存しています。TypeScript ファイルを直接実行するために ts-node をインストールしてください。",
+    "tsnode.notInstalled": "TypeScript ファイルの実行には ts-node が必要です。今すぐインストールしますか？",
     "tsnode.installButton": "ts-node をインストール",
-    "tsnode.installCompleted": "ts-node のインストールが完了しました！効果がない場合は VS Code を再起動してください。",
-    "tsnode.installFailed": "ts-node のインストールに失敗しました。手動でインストールしてください：npm install -g ts-node",
+    "tsnode.installing": "ts-node をインストールしています…",
+    "tsnode.installCompleted": "ts-node をインストールしました。TypeScript ファイルの実行を続けます。",
+    "tsnode.installFailed": "ts-node のインストールに失敗しました。インストールターミナルを確認するか、手動で実行してください：npm install --global ts-node",
+    "tsnode.retryButton": "再試行",
     "tsnode.installTerminalName": "ts-node インストール",
-    "tsnode.restartSuggestion": "変更を適用するために VS Code を再起動してください。",
-    "tsnode.restartButton": "VS Code を再起動",
 
     "terminal.unableToCreateDebugTerminal": "JavaScript デバッグターミナルを作成できません。",
-    "terminal.unableToCreateTerminal": "ターミナルを作成できません。",
     "terminal.debugSessionRunning": "実行中のデバッグセッションがあります。終了してから再試行してください。",
 
-    "file.noFileSelected": "ファイルが選択されていません。",
+    "file.noFileSelected": "まず JavaScript または TypeScript ファイルを開いてください。",
+    "file.unsupportedType": "JavaScript または TypeScript ファイルのみ実行できます。",
 
     "nodeVersion.selectPlaceholder": "Node.js バージョンを選択",
     "nodeVersion.getVersionsFailed": "Node.js バージョンの取得に失敗しました。",

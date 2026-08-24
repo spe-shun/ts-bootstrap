@@ -19,7 +19,10 @@
         "Other"
     ],
     "activationEvents": [
-        "onStartupFinished"
+        "onCommand:extension.ts-bootstrap.execTerminal",
+        "onCommand:extension.ts-bootstrap.debugTerminal",
+        "onCommand:extension.ts-bootstrap.execTerminalWithNodeVersion",
+        "onCommand:extension.ts-bootstrap.debugTerminalWithNodeVersion"
     ],
     "main": "./dist/extension.js",
     "l10n": "./l10n",

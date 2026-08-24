@@ -1,138 +1,113 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import runFile from './scripts/run-files';
-import { checkTsNodeInstallation } from './scripts/check-tsnode';
+import runFile, { FileRuntime, getFileRuntime } from './scripts/run-files';
+import { ensureTsNodeInstallation } from './scripts/check-tsnode';
 import { selectNodeVersion } from './scripts/node-version';
 import { t } from './utils/l10n';
 
-const DEBUG_TERMINAL_NAME = 'ts-node Debug Terminal';
-const EXEC_TERMINAL_NAME = 'ts-node Terminal';
+const DEBUG_TERMINAL_NAME = 'TS/JS Debugger';
+const EXEC_TERMINAL_NAME = 'TS/JS Runner';
 
-export function activate(context: vscode.ExtensionContext) {
-    // Check if ts-node is installed
-    checkTsNodeInstallation();
-
-    const debugDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.debugTerminal', async () => {
-        vscode.window.terminals.forEach(t => {
-            if (t.name === DEBUG_TERMINAL_NAME) {
-                t.dispose();
-            }
-        });
-
-        await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal', '', undefined, {
-            name: DEBUG_TERMINAL_NAME,
-        });
-
-        const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
-
-        if (!terminal) {
-            vscode.window.showInformationMessage(t('terminal.unableToCreateDebugTerminal'));
-            return;
-        }
-
-        if (vscode.debug.activeDebugSession) {
-            vscode.window.showInformationMessage(t('terminal.debugSessionRunning'));
-            return;
-        }
-
-        runFile(terminal, true);
-    });
-
-    const execDisposable = vscode.commands.registerCommand('extension.ts-bootstrap.execTerminal', () => {
-        vscode.window.terminals.forEach(t => {
-            if (t.name === EXEC_TERMINAL_NAME) {
-                t.dispose();
-            }
-        });
-
-        const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
-
-        if (!terminal) {
-            vscode.window.showInformationMessage(t('terminal.unableToCreateTerminal'));
-            return;
-        }
-
-        runFile(terminal, false);
-    });
-
-    // Run with specified Node version
-    const execWithNodeVersionDisposable = vscode.commands.registerCommand(
-        'extension.ts-bootstrap.execTerminalWithNodeVersion',
-        async () => {
-            // Select Node version
-            const nodeVersion = await selectNodeVersion();
-            if (!nodeVersion) {
-                return;
-            }
-
-            vscode.window.terminals.forEach(t => {
-                if (t.name === EXEC_TERMINAL_NAME) {
-                    t.dispose();
-                }
-            });
-
-            const terminal = vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
-
-            if (!terminal) {
-                vscode.window.showInformationMessage(t('terminal.unableToCreateTerminal'));
-                return;
-            }
-
-            runFile(terminal, false, nodeVersion);
-        },
-    );
-
-    // Debug with specified Node version
-    const debugWithNodeVersionDisposable = vscode.commands.registerCommand(
-        'extension.ts-bootstrap.debugTerminalWithNodeVersion',
-        async () => {
-            // Select Node version
-            const nodeVersion = await selectNodeVersion();
-            if (!nodeVersion) {
-                return;
-            }
-
-            vscode.window.terminals.forEach(t => {
-                if (t.name === DEBUG_TERMINAL_NAME) {
-                    t.dispose();
-                }
-            });
-
-            await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal', '', undefined, {
-                name: DEBUG_TERMINAL_NAME,
-            });
-
-            const terminal = vscode.window.terminals.find(t => t.name === DEBUG_TERMINAL_NAME);
-
-            if (!terminal) {
-                vscode.window.showInformationMessage(t('terminal.unableToCreateDebugTerminal'));
-                return;
-            }
-
-            if (vscode.debug.activeDebugSession) {
-                vscode.window.showInformationMessage(t('terminal.debugSessionRunning'));
-                return;
-            }
-
-            runFile(terminal, true, nodeVersion);
-        },
-    );
-
-    context.subscriptions.push(debugDisposable);
-    context.subscriptions.push(execDisposable);
-    context.subscriptions.push(execWithNodeVersionDisposable);
-    context.subscriptions.push(debugWithNodeVersionDisposable);
+interface RunTarget {
+    resource: vscode.Uri;
+    runtime: FileRuntime;
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {
-    const terminals = [EXEC_TERMINAL_NAME, DEBUG_TERMINAL_NAME];
+interface RunOptions {
+    debug: boolean;
+    selectVersion: boolean;
+}
 
-    terminals.forEach(name => {
-        const terminal = vscode.window.terminals.find(t => t.name === name);
-        if (terminal) {
-            terminal.dispose();
-        }
-    });
+async function getRunTarget(): Promise<RunTarget | undefined> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showWarningMessage(t('file.noFileSelected'));
+        return undefined;
+    }
+
+    const document = editor.document;
+    const runtime = getFileRuntime(document.fileName);
+
+    if (!runtime) {
+        vscode.window.showWarningMessage(t('file.unsupportedType'));
+        return undefined;
+    }
+
+    if (document.isDirty && !(await document.save())) {
+        return undefined;
+    }
+
+    return { resource: document.uri, runtime };
+}
+
+function disposeTerminal(name: string) {
+    vscode.window.terminals.filter(terminal => terminal.name === name).forEach(terminal => terminal.dispose());
+}
+
+async function createRunTerminal(debug: boolean): Promise<vscode.Terminal | undefined> {
+    const name = debug ? DEBUG_TERMINAL_NAME : EXEC_TERMINAL_NAME;
+    disposeTerminal(name);
+
+    if (!debug) {
+        return vscode.window.createTerminal({ name });
+    }
+
+    try {
+        await vscode.commands.executeCommand('extension.js-debug.createDebuggerTerminal', '', undefined, { name });
+    } catch {
+        vscode.window.showErrorMessage(t('terminal.unableToCreateDebugTerminal'));
+        return undefined;
+    }
+
+    const terminal = vscode.window.terminals.find(candidate => candidate.name === name);
+    if (!terminal) {
+        vscode.window.showErrorMessage(t('terminal.unableToCreateDebugTerminal'));
+    }
+    return terminal;
+}
+
+async function executeRunCommand(options: RunOptions) {
+    if (options.debug && vscode.debug.activeDebugSession) {
+        vscode.window.showWarningMessage(t('terminal.debugSessionRunning'));
+        return;
+    }
+
+    const target = await getRunTarget();
+    if (!target) {
+        return;
+    }
+
+    const nodeVersion = options.selectVersion ? await selectNodeVersion() : undefined;
+    if (options.selectVersion && !nodeVersion) {
+        return;
+    }
+
+    if (target.runtime === 'typescript' && !(await ensureTsNodeInstallation(target.resource))) {
+        return;
+    }
+
+    const terminal = await createRunTerminal(options.debug);
+    if (!terminal) {
+        return;
+    }
+
+    runFile(terminal, target.resource, options.debug, nodeVersion);
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    const commands: Array<[string, RunOptions]> = [
+        ['extension.ts-bootstrap.execTerminal', { debug: false, selectVersion: false }],
+        ['extension.ts-bootstrap.debugTerminal', { debug: true, selectVersion: false }],
+        ['extension.ts-bootstrap.execTerminalWithNodeVersion', { debug: false, selectVersion: true }],
+        ['extension.ts-bootstrap.debugTerminalWithNodeVersion', { debug: true, selectVersion: true }],
+    ];
+
+    context.subscriptions.push(
+        ...commands.map(([command, options]) =>
+            vscode.commands.registerCommand(command, () => executeRunCommand(options)),
+        ),
+    );
+}
+
+export function deactivate() {
+    [EXEC_TERMINAL_NAME, DEBUG_TERMINAL_NAME].forEach(disposeTerminal);
 }
