@@ -1,3 +1,10 @@
+# 0.2.10 (local debug UX trial)
+
+- Stop copying the extension host’s entire environment into debug launch arguments. Pass only a necessary PATH override and inherit the remaining environment normally.
+- Replace the custom simple-inspector / forced-entry / CDP worker workaround with standard js-debug launch. Do not stop at entry or intercept user breakpoint/exception stops.
+- Keep the selected Node executable, tsx loader and cwd consistent between Run and Debug.
+- Local trial update only; no marketplace publication.
+
 # 0.2.9 (local trial)
 
 - Use the same absolute Node.js, tsx loader, working directory, and environment for Run and Debug. Execution no longer depends on terminal shell quoting or `nvm use`.

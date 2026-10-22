@@ -58,3 +58,9 @@ TypeScript 需要 Node.js 18+ 和 tsx。优先查找目标文件向上最近的 
 `yarn test:unit` 通过模拟 VS Code API 执行独立回归测试，不代表端到端测试。`yarn test` 是 VS Code Electron 集成测试，需要可用桌面/显示环境。打包前还应执行 `yarn lint:check`、`yarn format:check` 和 `yarn package`。
 
 工作区外的独立文件使用以 Node 为可执行程序的专用终端。自动安装 tsx 需要打开工作区文件夹；否则请手动安装 tsx 后重试。
+
+### 调试启动
+
+调试使用 VS Code JavaScript 调试器的标准启动流程，不强制在入口暂停，也不再通过私有 CDP 流程拦截暂停。你的断点和异常断点设置仍然生效。`--import`（旧版 Node 使用 `--loader`）用于加载 tsx；VS Code 可能添加自己的调试启动参数。这些属于运行时/调试器参数，不是传给脚本的业务入参。
+
+启动环境只覆盖必要的 PATH，其余变量正常继承，不再整份复制到终端命令。若真实导入错误或异常停在内部加载器，请查看异常和调试控制台；插件不会无差别跳过这些暂停。

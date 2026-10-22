@@ -51,14 +51,19 @@ export function createExecutionPlan(
     if (runtime === 'typescript' && !tsxRuntime) {
         throw new Error('TypeScript requires a resolved tsx loader.');
     }
-    const env: Record<string, string> = {};
-    for (const [key, value] of Object.entries(process.env)) {
-        if (value !== undefined) {
-            env[key] = value;
-        }
-    }
-    const pathKey = Object.keys(env).find(key => key.toLowerCase() === 'path') ?? 'PATH';
-    env[pathKey] = [path.dirname(nodeExecutable), env[pathKey]].filter(Boolean).join(path.delimiter);
+    // Both Tasks and js-debug inherit the process environment themselves. Only
+    // override PATH for the chosen Node; serializing process.env would expose
+    // unrelated (possibly secret) values in the debug terminal's launch command.
+    const pathKey =
+        process.platform === 'win32'
+            ? (Object.keys(process.env).find(key => key.toLowerCase() === 'path') ?? 'PATH')
+            : 'PATH';
+    const inheritedPath = process.env[pathKey] ?? '';
+    const nodeDirectory = path.dirname(nodeExecutable);
+    const env: Record<string, string> =
+        inheritedPath.split(path.delimiter)[0] === nodeDirectory
+            ? {}
+            : { [pathKey]: [nodeDirectory, inheritedPath].filter(Boolean).join(path.delimiter) };
     const args = tsxRuntime ? [tsxRuntime.loaderFlag, pathToFileURL(tsxRuntime.loaderPath).toString()] : [];
     args.push(resource.fsPath);
     return { resource, runtime, nodeExecutable, tsxRuntime, cwd: getExecutionDirectory(resource), env, args };
@@ -137,7 +142,6 @@ export class FileTaskRunner implements vscode.Disposable {
                         shellArgs: ['-e', STANDALONE_RUNNER, '--', ...plan.args],
                         cwd: plan.cwd,
                         env: plan.env,
-                        strictEnv: true,
                     });
                     this.terminals.set(key, terminal);
                     terminal.show();

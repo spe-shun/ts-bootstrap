@@ -1,208 +1,81 @@
 const assert = require('node:assert/strict');
 const { test, afterEach } = require('node:test');
+const fs = require('node:fs');
+const path = require('node:path');
 const Module = require('node:module');
-const { EventEmitter } = require('node:events');
-let socketMode = 'success';
-const sockets = [];
-class FakeSocket extends EventEmitter {
-    constructor() {
-        super();
-        sockets.push(this);
-        setImmediate(() => this.emit('open'));
-    }
-    send(_request, callback) {
-        callback();
-        if (socketMode === 'close') this.emit('close');
-        if (socketMode === 'success') this.emit('message', Buffer.from('{"id":1}'));
-    }
-    terminate() {
-        this.terminated = true;
-    }
-}
-
-const stopped = [];
-const errors = [];
-let command = () => new Promise(() => {});
-const mock = {
-    window: {
-        createOutputChannel: () => ({ appendLine() {}, show() {}, dispose() {} }),
-        showErrorMessage: async message => {
-            errors.push(message);
-        },
-    },
-    commands: { executeCommand: (...args) => command(...args) },
-    debug: {
-        stopDebugging: async session => {
-            stopped.push(session.id);
-        },
+const { vscode } = require('./vscode-mock.cjs');
+const calls = [];
+let launch = async () => true;
+vscode.debug = {
+    startDebugging: async (...args) => {
+        calls.push(args);
+        return launch();
     },
 };
 const originalLoad = Module._load;
-Module._load = function (request, parent, ...rest) {
-    if (request === 'vscode') return mock;
-    if (request === 'ws') return FakeSocket;
-    if (request === './run-files' && parent.filename.endsWith('debug-file.js')) {
-        return { getExecutionDirectory: () => '/work' };
-    }
-    return originalLoad.call(this, request, parent, ...rest);
+Module._load = function (request, ...rest) {
+    if (request === 'vscode') return vscode;
+    return originalLoad.call(this, request, ...rest);
 };
-const lifecycle = require('../out/scripts/debug-file.js');
+const { debugFile, createDebugConfiguration } = require('../out/scripts/debug-file.js');
 Module._load = originalLoad;
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-function target(id = 'target') {
-    const requests = [];
-    return {
-        id,
-        requests,
-        parentSession: {
-            id: 'parent',
-            name: lifecycle.DEBUG_SESSION_NAME,
-            configuration: { [lifecycle.DEBUG_SESSION_MARKER]: true, __tsBootstrapTsx: true },
-        },
-        customRequest: async (name, args) => {
-            requests.push({ name, args });
-        },
-    };
-}
-const stop = (reason = 'entry', threadId = 7) => ({ type: 'event', event: 'stopped', body: { reason, threadId } });
 afterEach(() => {
-    lifecycle.disposeDebugSessions();
-    stopped.length = 0;
-    errors.length = 0;
-    sockets.length = 0;
-    socketMode = 'success';
-    command = () => new Promise(() => {});
+    calls.length = 0;
+    launch = async () => true;
 });
-test('only entry pauses are continued, once, after preparation', async () => {
-    const session = target();
-    let count = 0;
-    const tracker = lifecycle.createDebugAdapterTracker(session, async () => {
-        count++;
-    });
-    tracker.onDidSendMessage(stop('breakpoint'));
-    await wait(0);
-    assert.equal(count, 0);
-    tracker.onDidSendMessage(stop());
-    await wait(0);
-    tracker.onDidSendMessage(stop('exception'));
-    assert.equal(count, 1);
-    assert.deepEqual(session.requests, [{ name: 'continue', args: { threadId: 7 } }]);
+const resource = vscode.Uri.file('/project with spaces/example.ts');
+const options = {
+    nodeExecutable: '/selected node/bin/node',
+    tsxRuntime: { loaderFlag: '--import', loaderPath: '/project with spaces/node_modules/tsx/dist/loader.mjs' },
+    cwd: '/project with spaces',
+    env: { PATH: '/selected node/bin:/usr/bin' },
+};
+test('standard TS launch uses selected runtime without forced inspector entry stops', async () => {
+    assert.equal(await debugFile(resource, 'typescript', options), true);
+    const config = calls[0][1];
+    assert.equal(config.type, 'pwa-node');
+    assert.equal(config.request, 'launch');
+    assert.equal(config.runtimeExecutable, options.nodeExecutable);
+    assert.equal(config.cwd, options.cwd);
+    assert.deepEqual(config.env, options.env);
+    assert.equal(config.stopOnEntry, false);
+    assert.equal(config.attachSimplePort, undefined);
+    assert.equal(config.autoAttachChildProcesses, false);
+    assert.deepEqual(config.runtimeArgs, [
+        '--import',
+        'file:///project%20with%20spaces/node_modules/tsx/dist/loader.mjs',
+    ]);
 });
-test('termination cancels late preparation without stopping another session', async () => {
-    const session = target();
-    let resolve;
-    const tracker = lifecycle.createDebugAdapterTracker(
-        session,
-        () =>
-            new Promise(r => {
-                resolve = r;
-            }),
+test('JS launch also leaves ordinary pause and breakpoint handling to js-debug', () => {
+    const config = createDebugConfiguration(vscode.Uri.file('/project/example.js'), 'javascript', '/project');
+    assert.equal(config.stopOnEntry, false);
+    assert.equal(config.attachSimplePort, undefined);
+    assert.equal(config.runtimeArgs, undefined);
+});
+test('missing TS runtime does not start a session', async () => {
+    assert.equal(await debugFile(resource, 'typescript'), false);
+    assert.equal(calls.length, 0);
+});
+test('launch false/cancellation allows a later launch', async () => {
+    launch = async () => false;
+    assert.equal(await debugFile(resource, 'typescript', options), false);
+    launch = async () => true;
+    assert.equal(await debugFile(resource, 'typescript', options), true);
+});
+test('launch errors propagate and do not poison the next launch', async () => {
+    launch = async () => {
+        throw new Error('launch unavailable');
+    };
+    await assert.rejects(debugFile(resource, 'typescript', options), /launch unavailable/);
+    launch = async () => true;
+    assert.equal(await debugFile(resource, 'typescript', options), true);
+});
+test('extension never installs a stop-event interceptor or private CDP workaround', () => {
+    const debugSource = fs.readFileSync(path.join(__dirname, '../src/scripts/debug-file.ts'), 'utf8');
+    const extensionSource = fs.readFileSync(path.join(__dirname, '../src/extension.ts'), 'utf8');
+    assert.doesNotMatch(debugSource, /customRequest|requestCDPProxy|NodeWorker\.|WebSocket/);
+    assert.doesNotMatch(
+        extensionSource,
+        /registerDebugAdapterTrackerFactory|onDidStartDebugSession|onDidTerminateDebugSession/,
     );
-    tracker.onDidSendMessage(stop());
-    await wait(0);
-    lifecycle.releaseDebugSession(session.parentSession);
-    resolve();
-    await wait(0);
-    assert.deepEqual(session.requests, []);
-    assert.deepEqual(stopped, []);
-    assert.deepEqual(errors, []);
-});
-test('breakpoint reached during preparation is not automatically continued', async () => {
-    const session = target();
-    let resolve;
-    const tracker = lifecycle.createDebugAdapterTracker(
-        session,
-        () =>
-            new Promise(r => {
-                resolve = r;
-            }),
-    );
-    tracker.onDidSendMessage(stop());
-    await wait(0);
-    tracker.onDidSendMessage(stop('breakpoint', 8));
-    resolve();
-    await wait(0);
-    assert.deepEqual(session.requests, []);
-});
-test('rejected initialization is surfaced and stops only the owned target', async () => {
-    const session = target();
-    const tracker = lifecycle.createDebugAdapterTracker(session, async () => {
-        throw new Error('proxy unavailable');
-    });
-    tracker.onDidSendMessage(stop());
-    await wait(0);
-    assert.deepEqual(stopped, ['target']);
-    assert.equal(errors.length, 1);
-    assert.deepEqual(session.requests, []);
-});
-test('hanging initialization times out and permits a fresh retry', async () => {
-    const session = target();
-    const tracker = lifecycle.createDebugAdapterTracker(session, () => new Promise(() => {}), 10);
-    tracker.onDidSendMessage(stop());
-    await wait(30);
-    assert.deepEqual(stopped, ['target']);
-    lifecycle.releaseDebugSession(session);
-    const retry = target();
-    lifecycle.createDebugAdapterTracker(retry, async () => {}).onDidSendMessage(stop());
-    await wait(0);
-    assert.equal(retry.requests.length, 1);
-});
-test('failed initialization preserves a breakpoint reached meanwhile', async () => {
-    const session = target();
-    let reject;
-    const tracker = lifecycle.createDebugAdapterTracker(
-        session,
-        () =>
-            new Promise((_, r) => {
-                reject = r;
-            }),
-    );
-    tracker.onDidSendMessage(stop());
-    await wait(0);
-    tracker.onDidSendMessage(stop('breakpoint'));
-    reject(new Error('failure'));
-    await wait(0);
-    assert.deepEqual(stopped, []);
-    assert.equal(errors.length, 1);
-});
-test('unrelated and plain JS sessions are untouched', () => {
-    assert.equal(lifecycle.createDebugAdapterTracker({ id: 'other' }), undefined);
-    const js = target();
-    delete js.parentSession.configuration.__tsBootstrapTsx;
-    assert.equal(lifecycle.createDebugAdapterTracker(js), undefined);
-});
-test('pending real CDP proxy request is cancellable', async () => {
-    const session = target();
-    lifecycle.prepareDebugSession(session);
-    lifecycle.releaseDebugSession(session);
-    await wait(0);
-    assert.deepEqual(stopped, []);
-    assert.deepEqual(errors, []);
-});
-
-test('closed CDP socket reports initialization failure and releases connection', async () => {
-    command = async () => ({ port: 1234, path: '/test' });
-    socketMode = 'close';
-    lifecycle.prepareDebugSession(target());
-    await wait(10);
-    assert.deepEqual(stopped, ['target']);
-    assert.equal(errors.length, 1);
-    assert.equal(sockets[0].terminated, true);
-});
-test('cancelling an open CDP socket closes it without reporting an error', async () => {
-    command = async () => ({ port: 1234, path: '/test' });
-    socketMode = 'pending';
-    const session = target();
-    lifecycle.prepareDebugSession(session);
-    await wait(10);
-    lifecycle.releaseDebugSession(session);
-    await wait(0);
-    assert.equal(sockets[0].terminated, true);
-    assert.deepEqual(errors, []);
-});
-test('an unresponsive CDP proxy command has a bounded deadline', async () => {
-    lifecycle.prepareDebugSession(target());
-    await wait(3100);
-    assert.deepEqual(stopped, ['target']);
-    assert.equal(errors.length, 1);
 });

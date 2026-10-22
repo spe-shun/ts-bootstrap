@@ -58,3 +58,9 @@ The setting supports per-folder values in multi-root workspaces. It does **not**
 `yarn test:unit` runs isolated regression tests with a mocked VS Code API, not end-to-end integration. `yarn test` runs the VS Code Electron integration suite and requires a supported desktop/display environment. Also run `yarn lint:check`, `yarn format:check`, and `yarn package` before packaging a VSIX.
 
 Standalone files outside a workspace run in a dedicated terminal with Node as the executable. Automatic tsx installation needs an open workspace folder; otherwise install tsx manually and retry.
+
+### Debug startup
+
+Debug now uses the standard VS Code JavaScript debugger launch path, with no forced entry pause or private CDP setup. It stops at your breakpoints and respects your exception-breakpoint settings. `--import` (or older Node’s `--loader`) loads tsx; VS Code may add its own inspector bootstrap options. Those are debugger/runtime options, not arguments passed to your script.
+
+Only a necessary PATH override is added to the launch environment. Other variables are inherited normally rather than copied into the displayed command. If a real exception stops in loader/import internals, inspect the exception and Debug Console instead of blindly continuing; the extension does not suppress these stops.

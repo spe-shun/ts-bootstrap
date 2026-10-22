@@ -165,7 +165,7 @@ test('standalone files use direct Node terminals without unsupported global task
         assert.equal(terminals[2].options.shellPath, '/node dir/node');
         assert.deepEqual(terminals[2].options.shellArgs.slice(3), plan('/standalone/a.ts').args);
         assert.equal(terminals[2].options.shellArgs[0], '-e');
-        assert.equal(terminals[2].options.strictEnv, true);
+        assert.equal(terminals[2].options.strictEnv, undefined);
     } finally {
         runner.dispose();
         vscode.window.createTerminal = create;
@@ -236,5 +236,36 @@ test('standalone wrapper executes real Node args and retains output until input'
     } finally {
         child.kill();
         fs.rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test('execution plan passes only PATH delta, never inherited secret or extension-host values', () => {
+    const key = 'TS_BOOTSTRAP_TEST_SECRET';
+    const old = process.env[key];
+    process.env[key] = 'synthetic-test-marker-not-a-real-secret';
+    try {
+        const p = plan();
+        assert.deepEqual(
+            Object.keys(p.env).map(k => k.toLowerCase()),
+            ['path'],
+        );
+        assert.equal(p.env[key], undefined);
+        const debug = createDebugConfiguration(p.resource, p.runtime, p.cwd, p);
+        assert.ok(!JSON.stringify(debug).includes(process.env[key]));
+    } finally {
+        if (old === undefined) delete process.env[key];
+        else process.env[key] = old;
+    }
+});
+
+test('matching inherited Node PATH requires no environment serialization', () => {
+    const key = Object.keys(process.env).find(k => k.toLowerCase() === 'path') ?? 'PATH';
+    const old = process.env[key];
+    process.env[key] = ['/node dir', '/other/bin'].join(path.delimiter);
+    try {
+        assert.deepEqual(plan().env, {});
+    } finally {
+        if (old === undefined) delete process.env[key];
+        else process.env[key] = old;
     }
 });

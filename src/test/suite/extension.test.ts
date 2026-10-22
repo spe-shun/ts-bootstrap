@@ -7,12 +7,7 @@ import * as path from 'path';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { getTsxDebugRuntime, getTsxLoaderFlag, isTsxNodeVersionSupported } from '../../scripts/check-tsx';
-import {
-    createDebugAdapterTracker,
-    createDebugConfiguration,
-    DEBUG_SESSION_MARKER,
-    DEBUG_SESSION_NAME,
-} from '../../scripts/debug-file';
+import { createDebugConfiguration, DEBUG_SESSION_MARKER } from '../../scripts/debug-file';
 import { getFileExecutor, getFileRuntime } from '../../scripts/run-files';
 // import * as myExtension from '../../extension';
 
@@ -96,8 +91,8 @@ suite('Extension Test Suite', () => {
         assert.strictEqual(configuration.runtimeExecutable, '/nvm/versions/node/v20.20.2/bin/node');
         assert.strictEqual(configuration.runtimeVersion, undefined);
         assert.strictEqual(configuration.autoAttachChildProcesses, false);
-        assert.strictEqual(configuration.attachSimplePort, 0);
-        assert.strictEqual(configuration.stopOnEntry, true);
+        assert.strictEqual(configuration.attachSimplePort, undefined);
+        assert.strictEqual(configuration.stopOnEntry, false);
         assert.deepStrictEqual(configuration.runtimeArgs, [
             '--import',
             'file:///global/node_modules/tsx/dist/loader.mjs',
@@ -114,35 +109,6 @@ suite('Extension Test Suite', () => {
         assert.strictEqual(configuration[DEBUG_SESSION_MARKER], true);
         assert.strictEqual(configuration.autoAttachChildProcesses, false);
         assert.strictEqual(configuration.attachSimplePort, undefined);
-        assert.strictEqual(configuration.stopOnEntry, undefined);
-    });
-
-    test('Should skip only the initial debugger stop after preparing the tsx worker', async () => {
-        const parentSession = {
-            name: DEBUG_SESSION_NAME,
-            configuration: { [DEBUG_SESSION_MARKER]: true, __tsBootstrapTsx: true },
-        } as unknown as vscode.DebugSession;
-        const requests: Array<{ command: string; args: unknown }> = [];
-        const targetSession = {
-            id: 'target-session',
-            parentSession,
-            customRequest: async (command: string, args: unknown) => {
-                requests.push({ command, args });
-            },
-        } as unknown as vscode.DebugSession;
-        let preparationCount = 0;
-        const tracker = createDebugAdapterTracker(targetSession, async target => {
-            assert.strictEqual(target, targetSession);
-            preparationCount += 1;
-        });
-
-        assert.ok(tracker);
-        tracker.onDidSendMessage?.({ type: 'event', event: 'output' });
-        tracker.onDidSendMessage?.({ type: 'event', event: 'stopped', body: { threadId: 7, reason: 'entry' } });
-        tracker.onDidSendMessage?.({ type: 'event', event: 'stopped', body: { threadId: 8, reason: 'entry' } });
-        await new Promise(resolve => setImmediate(resolve));
-
-        assert.strictEqual(preparationCount, 1);
-        assert.deepStrictEqual(requests, []);
+        assert.strictEqual(configuration.stopOnEntry, false);
     });
 });

@@ -1,13 +1,7 @@
 import * as vscode from 'vscode';
 import { FileRuntime, getFileRuntime, createExecutionPlan, FileTaskRunner } from './scripts/run-files';
 import { ensureTsxInstallation, getTsxDebugRuntime, TsxDebugRuntime } from './scripts/check-tsx';
-import {
-    createDebugAdapterTracker,
-    disposeDebugSessions,
-    debugFile,
-    prepareDebugSession,
-    releaseDebugSession,
-} from './scripts/debug-file';
+import { debugFile } from './scripts/debug-file';
 import { getNodeExecutable, selectNodeVersion } from './scripts/node-version';
 import { t } from './utils/l10n';
 
@@ -110,14 +104,10 @@ export function activate(context: vscode.ExtensionContext) {
         ...commands.map(([command, options]) =>
             vscode.commands.registerCommand(command, () => executeRunCommand(options)),
         ),
-        vscode.debug.registerDebugAdapterTrackerFactory('pwa-node', { createDebugAdapterTracker }),
-        vscode.debug.onDidStartDebugSession(prepareDebugSession),
-        vscode.debug.onDidTerminateDebugSession(releaseDebugSession),
     );
 }
 
 export function deactivate() {
-    disposeDebugSessions();
     runner?.dispose();
     runner = undefined;
 }
