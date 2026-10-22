@@ -1,3 +1,11 @@
+# 0.2.9 (local trial)
+
+- Use the same absolute Node.js, tsx loader, working directory, and environment for Run and Debug. Execution no longer depends on terminal shell quoting or `nvm use`.
+- Prefer the target project’s local tsx installation, then the selected Node.js environment and PATH. Do not reuse stale runtime caches.
+- Keep runs of different files independent. Rerunning a file stops only its previous extension-owned task, never unrelated terminals.
+- Parse nvm-windows versions with or without `v`, and handle debugger initialization failures, cancellation, and timeouts without skipping user breakpoints.
+- Make the existing working-directory setting resource-scoped and clarify its meaning. Add headless mocked regression coverage.
+
 # Change Log
 
 All notable changes to the "ts-bootstrap" extension will be documented in this file.

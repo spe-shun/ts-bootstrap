@@ -3,11 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as semver from 'semver';
 import * as vscode from 'vscode';
-import { getCommandSeparator, isWindows } from '../utils';
+import { isWindows } from '../utils';
 import { t } from '../utils/l10n';
-import { getNodeExecutable, getNvmUseCommand } from './node-version';
+import { getNodeExecutable } from './node-version';
 
-const INSTALL_COMMAND = 'npm install --global tsx@4';
 const INSTALL_TASK_TYPE = 'ts-bootstrap';
 const MINIMUM_NODE_VERSION = '18.0.0';
 const DEFAULT_INSTALLATION_KEY = 'current';
@@ -22,29 +21,15 @@ export interface TsxDebugRuntime {
     nodeVersion: string;
 }
 
-const confirmedInstallations = new Set<string>();
 const pendingInstallations = new Map<string, Promise<boolean>>();
-const resolvedDebugRuntimes = new Map<string, TsxDebugRuntime>();
 let installationTaskId = 0;
 
-function getInstallationKey(nodeVersion?: string): string {
-    return nodeVersion ?? DEFAULT_INSTALLATION_KEY;
+function getInstallationKey(nodeVersion?: string, nodeExecutable?: string): string {
+    return [nodeVersion ?? DEFAULT_INSTALLATION_KEY, nodeExecutable ?? ''].join('\0');
 }
 
 export function isTsxNodeVersionSupported(nodeVersion?: string): boolean {
     return !nodeVersion || semver.gte(nodeVersion, MINIMUM_NODE_VERSION);
-}
-
-function getVersionAwareCommand(command: string, nodeVersion?: string): string {
-    if (!nodeVersion) {
-        return command;
-    }
-
-    return [getNvmUseCommand(nodeVersion), command].join(` ${getCommandSeparator()} `);
-}
-
-export function getTsxInstallationCommand(nodeVersion?: string): string {
-    return getVersionAwareCommand(INSTALL_COMMAND, nodeVersion);
 }
 
 function executeFile(command: string, args: string[]): Promise<string | undefined> {
@@ -156,7 +141,23 @@ function findLoaderInPackageRoot(packageRoot: string): string | undefined {
     return isFile(loaderPath) ? loaderPath : undefined;
 }
 
-function resolveTsxLoaderPath(nodeExecutable?: string): string | undefined {
+export function resolveTsxLoaderPath(nodeExecutable?: string, resource?: vscode.Uri): string | undefined {
+    // Resolve from the target file, not from the extension's own node_modules.
+    // Walking ancestors also supports hoisted workspaces and pnpm symlinks.
+    if (resource) {
+        let directory = path.dirname(resource.fsPath);
+        while (directory) {
+            const localLoader = findLoaderInPackageRoot(path.join(directory, 'node_modules', 'tsx'));
+            if (localLoader) {
+                return localLoader;
+            }
+            const parent = path.dirname(directory);
+            if (parent === directory) {
+                break;
+            }
+            directory = parent;
+        }
+    }
     if (nodeExecutable) {
         const nodeBinDirectory = path.dirname(nodeExecutable);
         const packageRoots = [
@@ -193,6 +194,7 @@ export function getTsxLoaderFlag(nodeVersion: string): '--import' | '--loader' {
 export async function getTsxDebugRuntime(
     nodeVersion?: string,
     nodeExecutable?: string,
+    resource?: vscode.Uri,
 ): Promise<TsxDebugRuntime | undefined> {
     const resolvedNodeExecutable =
         nodeExecutable ?? (nodeVersion ? await getNodeExecutable(nodeVersion) : getExecutableCandidates('node')[0]);
@@ -200,18 +202,12 @@ export async function getTsxDebugRuntime(
         return undefined;
     }
 
-    const runtimeKey = `${nodeVersion ?? 'current'}\0${resolvedNodeExecutable}`;
-    const cachedRuntime = resolvedDebugRuntimes.get(runtimeKey);
-    if (cachedRuntime && isFile(cachedRuntime.loaderPath)) {
-        return cachedRuntime;
-    }
-
     const resolvedNodeVersion = nodeVersion ?? getLastVersion(await executeFile(resolvedNodeExecutable, ['--version']));
     if (!resolvedNodeVersion || !isTsxNodeVersionSupported(resolvedNodeVersion)) {
         return undefined;
     }
 
-    const loaderPath = resolveTsxLoaderPath(resolvedNodeExecutable);
+    const loaderPath = resolveTsxLoaderPath(resolvedNodeExecutable, resource);
     if (!loaderPath) {
         return undefined;
     }
@@ -221,35 +217,45 @@ export async function getTsxDebugRuntime(
         loaderFlag: getTsxLoaderFlag(resolvedNodeVersion),
         nodeVersion: resolvedNodeVersion,
     };
-    resolvedDebugRuntimes.set(runtimeKey, runtime);
     return runtime;
 }
 
 /** Check the exact Node.js environment selected for execution. */
-export async function isTsxInstalled(nodeVersion?: string, nodeExecutable?: string): Promise<boolean> {
-    const installationKey = getInstallationKey(nodeVersion);
-    if (confirmedInstallations.has(installationKey)) {
-        return true;
-    }
-
-    const isAvailable = !!(await getTsxDebugRuntime(nodeVersion, nodeExecutable));
-
-    if (isAvailable) {
-        confirmedInstallations.add(installationKey);
-    }
-
-    return isAvailable;
+export async function isTsxInstalled(
+    nodeVersion?: string,
+    nodeExecutable?: string,
+    resource?: vscode.Uri,
+): Promise<boolean> {
+    // Never cache availability: workspace dependencies can change while VS Code is open.
+    return !!(await getTsxDebugRuntime(nodeVersion, nodeExecutable, resource));
 }
 
-function createInstallationTask(resource: vscode.Uri, taskId: number, nodeVersion?: string): vscode.Task {
-    const scope = vscode.workspace.getWorkspaceFolder(resource) ?? vscode.TaskScope.Workspace;
-    const command = getTsxInstallationCommand(nodeVersion);
+export function createInstallationTask(
+    resource: vscode.Uri,
+    taskId: number,
+    nodeExecutable: string,
+): vscode.Task | undefined {
+    const nodeDirectory = path.dirname(nodeExecutable);
+    const npmCli = [
+        path.join(nodeDirectory, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+        path.resolve(nodeDirectory, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+        path.resolve(nodeDirectory, '..', 'share', 'nodejs', 'npm', 'bin', 'npm-cli.js'),
+    ].find(isFile);
+    if (!npmCli) {
+        return undefined;
+    }
+    const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === 'path') ?? 'PATH';
+    const env = { [pathKey]: `${nodeDirectory}${path.delimiter}${process.env[pathKey] ?? ''}` };
+    const scope = vscode.workspace.getWorkspaceFolder(resource) ?? vscode.workspace.workspaceFolders?.[0];
+    if (!scope) {
+        return undefined;
+    }
     const task = new vscode.Task(
-        { type: INSTALL_TASK_TYPE, command: 'install-tsx', taskId, nodeVersion },
+        { type: INSTALL_TASK_TYPE, command: 'install-tsx', taskId, nodeExecutable },
         scope,
         t('tsx.installTerminalName'),
         INSTALL_TASK_TYPE,
-        new vscode.ShellExecution(command),
+        new vscode.ProcessExecution(nodeExecutable, [npmCli, 'install', '--global', 'tsx@4'], { env }),
         [],
     );
 
@@ -268,10 +274,13 @@ function createInstallationTask(resource: vscode.Uri, taskId: number, nodeVersio
 async function runInstallationTask(
     resource: vscode.Uri,
     token: vscode.CancellationToken,
-    nodeVersion?: string,
+    nodeExecutable: string,
 ): Promise<InstallationResult> {
     const taskId = ++installationTaskId;
-    const task = createInstallationTask(resource, taskId, nodeVersion);
+    const task = createInstallationTask(resource, taskId, nodeExecutable);
+    if (!task) {
+        return 'failed';
+    }
     let execution: vscode.TaskExecution | undefined;
     let cancelled = token.isCancellationRequested;
     let settled = false;
@@ -338,10 +347,10 @@ async function installTsx(resource: vscode.Uri, nodeVersion?: string, nodeExecut
             title: t('tsx.installing'),
             cancellable: true,
         },
-        (_progress, token) => runInstallationTask(resource, token, nodeVersion),
+        (_progress, token) => runInstallationTask(resource, token, nodeExecutable!),
     );
 
-    if (result === 'succeeded' && (await isTsxInstalled(nodeVersion, nodeExecutable))) {
+    if (result === 'succeeded' && (await isTsxInstalled(nodeVersion, nodeExecutable, resource))) {
         vscode.window.showInformationMessage(t('tsx.installCompleted'));
         return true;
     }
@@ -359,7 +368,7 @@ async function promptForInstallation(
     nodeVersion?: string,
     nodeExecutable?: string,
 ): Promise<boolean> {
-    if (await isTsxInstalled(nodeVersion, nodeExecutable)) {
+    if (await isTsxInstalled(nodeVersion, nodeExecutable, resource)) {
         return true;
     }
 
@@ -383,12 +392,29 @@ export async function ensureTsxInstallation(
     nodeVersion?: string,
     nodeExecutable?: string,
 ): Promise<boolean> {
-    if (!isTsxNodeVersionSupported(nodeVersion)) {
+    nodeExecutable = nodeExecutable ?? (await getNodeExecutable(nodeVersion));
+    if (!nodeExecutable) {
+        vscode.window.showErrorMessage(t('nodeVersion.executableNotFound'));
+        return false;
+    }
+    const actualVersion = getLastVersion(await executeFile(nodeExecutable, ['--version']));
+    if (!actualVersion) {
+        vscode.window.showErrorMessage(
+            'Unable to execute the resolved Node.js runtime. Check its permissions and installation.',
+        );
+        return false;
+    }
+    if (!isTsxNodeVersionSupported(actualVersion)) {
         vscode.window.showErrorMessage(t('tsx.unsupportedNodeVersion'));
         return false;
     }
+    nodeVersion = actualVersion;
 
-    const installationKey = getInstallationKey(nodeVersion);
+    if (await isTsxInstalled(nodeVersion, nodeExecutable, resource)) {
+        return true;
+    }
+    // A global install is shared by all files using the same concrete Node runtime.
+    const installationKey = getInstallationKey(nodeVersion, nodeExecutable);
     const pendingInstallation = pendingInstallations.get(installationKey);
     if (pendingInstallation) {
         return pendingInstallation;

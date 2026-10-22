@@ -1,6 +1,5 @@
 {
-    "config.executeInCurrentDirectory": "true の場合、現在のディレクトリでターゲットファイルを実行し、false の場合はターゲットファイルのディレクトリで実行します",
-
+    "config.executeInCurrentDirectory": "実行とデバッグの作業ディレクトリ。true: 対象ファイルのワークスペースフォルダー、false: ファイルのあるディレクトリ。ワークスペース外では常にファイルのあるディレクトリを使用します。ターミナルの現在のディレクトリではありません。",
     "command.runTsJs": "実行 TS/JS",
     "command.debugTsJs": "デバッグ TS/JS",
     "command.runTsJsWith": "実行 TS/JS（指定 Node）",

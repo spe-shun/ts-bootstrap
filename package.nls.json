@@ -1,6 +1,5 @@
 {
-    "config.executeInCurrentDirectory": "If true, execute the target file in the current directory, else execute in target file directory",
-
+    "config.executeInCurrentDirectory": "Run and debug in the target file’s workspace folder (true), or its containing directory (false). Files outside a workspace use their containing directory. This is not the current terminal directory.",
     "command.runTsJs": "Run TS/JS",
     "command.debugTsJs": "Debug TS/JS",
     "command.runTsJsWith": "Run TS/JS with ...",

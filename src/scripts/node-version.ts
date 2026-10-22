@@ -78,11 +78,52 @@ function getInstalledUnixNodeVersions(nvmDirectory: string): string[] {
     }
 }
 
+/** Parse nvm-windows list output, including its unprefixed active version. */
+export function parseNvmWindowsVersions(output: string): string[] {
+    const versions = new Set<string>();
+    for (const line of output.split(/\r?\n/)) {
+        // Older releases sometimes prefix versions with v; current releases do not.
+        const match = line.trim().match(/^(?:\*\s*)?v?(\d+\.\d+\.\d+)(?:\s|$)/);
+        if (match && semver.valid(match[1])) {
+            versions.add(match[1]);
+        }
+    }
+    return Array.from(versions).sort((a, b) => semver.rcompare(a, b));
+}
+
+/** Resolve Node from the extension host PATH, without inheriting a shell profile. */
+export function resolveNodeFromPath(env: Record<string, string | undefined> = process.env): string | undefined {
+    const windows = isWindows && !isWSL;
+    // Windows environment keys are case-insensitive, including the common Path spelling.
+    const pathKey = windows ? Object.keys(env).find(key => key.toLowerCase() === 'path') : 'PATH';
+    const searchPath = pathKey ? env[pathKey] : undefined;
+    for (const entry of (searchPath ?? '').split(path.delimiter)) {
+        const directory = windows ? entry.replace(/^"(.*)"$/, '$1') : entry;
+        // Empty/relative entries would make resolution depend on a mutable process cwd.
+        if (!directory || !path.isAbsolute(directory)) {
+            continue;
+        }
+        const candidate = path.join(directory, windows ? 'node.exe' : 'node');
+        try {
+            if (fs.statSync(candidate).isFile()) {
+                fs.accessSync(candidate, windows ? fs.constants.F_OK : fs.constants.X_OK);
+                return candidate;
+            }
+        } catch {
+            // Continue to the next PATH entry when absent or not executable.
+        }
+    }
+    return undefined;
+}
+
 /**
- * Resolve an installed nvm version to its concrete Node.js executable. Passing
+ * Resolve the default host PATH Node, or an installed nvm version, to an executable. Passing
  * this path to js-debug avoids its runtimeVersion PATH rewriting.
  */
-export async function getNodeExecutable(version: string): Promise<string | undefined> {
+export async function getNodeExecutable(version?: string): Promise<string | undefined> {
+    if (version === undefined) {
+        return resolveNodeFromPath();
+    }
     if (!semver.valid(version)) {
         return undefined;
     }
@@ -155,8 +196,10 @@ export function getNodeVersions(): Promise<string[]> {
             if (isWindows && !isWSL) {
                 // Windows environment using nvm-windows
                 try {
-                    output = childProcess.execSync('nvm list', {
+                    output = childProcess.execFileSync('nvm.exe', ['list'], {
                         encoding: 'utf8',
+                        timeout: 10000,
+                        windowsHide: true,
                     });
                 } catch (error) {
                     vscode.window.showErrorMessage(t('nodeVersion.nvmNotInstalled.windows'));
@@ -164,20 +207,7 @@ export function getNodeVersions(): Promise<string[]> {
                     return;
                 }
 
-                // nvm-windows has different output format, needs separate handling
-                const versionRegex = /v(\d+\.\d+\.\d+)/g;
-                const versionSet = new Set<string>();
-                let match;
-
-                while ((match = versionRegex.exec(output)) !== null) {
-                    versionSet.add(match[1]);
-                }
-
-                const versions = Array.from(versionSet).sort((a, b) => {
-                    return semver.rcompare(a, b);
-                });
-
-                resolve(versions);
+                resolve(parseNvmWindowsVersions(output));
             } else {
                 // Linux/macOS/WSL environment using standard nvm
                 const nvmDirectory = getNvmDirectory();
