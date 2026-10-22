@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import runFile, { FileRuntime, getFileRuntime } from './scripts/run-files';
+import { FileRuntime, getFileRuntime, createExecutionPlan, FileTaskRunner } from './scripts/run-files';
 import { ensureTsxInstallation, getTsxDebugRuntime, TsxDebugRuntime } from './scripts/check-tsx';
-import { createDebugAdapterTracker, debugFile, prepareDebugSession, releaseDebugSession } from './scripts/debug-file';
+import { debugFile } from './scripts/debug-file';
 import { getNodeExecutable, selectNodeVersion } from './scripts/node-version';
 import { t } from './utils/l10n';
 
-const EXEC_TERMINAL_NAME = 'TS/JS Runner';
+let runner: FileTaskRunner | undefined;
 
 interface RunTarget {
     resource: vscode.Uri;
@@ -39,21 +39,7 @@ async function getRunTarget(): Promise<RunTarget | undefined> {
     return { resource: document.uri, runtime };
 }
 
-function disposeTerminal(name: string) {
-    vscode.window.terminals.filter(terminal => terminal.name === name).forEach(terminal => terminal.dispose());
-}
-
-function createRunTerminal(): vscode.Terminal {
-    disposeTerminal(EXEC_TERMINAL_NAME);
-    return vscode.window.createTerminal({ name: EXEC_TERMINAL_NAME });
-}
-
 async function executeRunCommand(options: RunOptions) {
-    if (options.debug && vscode.debug.activeDebugSession) {
-        vscode.window.showWarningMessage(t('terminal.debugSessionRunning'));
-        return;
-    }
-
     const target = await getRunTarget();
     if (!target) {
         return;
@@ -64,8 +50,8 @@ async function executeRunCommand(options: RunOptions) {
         return;
     }
 
-    const nodeExecutable = nodeVersion ? await getNodeExecutable(nodeVersion) : undefined;
-    if (options.debug && nodeVersion && !nodeExecutable) {
+    const nodeExecutable = await getNodeExecutable(nodeVersion);
+    if (!nodeExecutable) {
         vscode.window.showErrorMessage(t('nodeVersion.executableNotFound'));
         return;
     }
@@ -76,18 +62,18 @@ async function executeRunCommand(options: RunOptions) {
             return;
         }
 
-        if (options.debug) {
-            tsxRuntime = await getTsxDebugRuntime(nodeVersion, nodeExecutable);
-            if (!tsxRuntime) {
-                vscode.window.showErrorMessage(t('tsx.debugRuntimeUnavailable'));
-                return;
-            }
+        tsxRuntime = await getTsxDebugRuntime(nodeVersion, nodeExecutable, target.resource);
+        if (!tsxRuntime) {
+            vscode.window.showErrorMessage(t('tsx.debugRuntimeUnavailable'));
+            return;
         }
     }
 
+    const plan = createExecutionPlan(target.resource, target.runtime, nodeExecutable, tsxRuntime);
+
     if (options.debug) {
         try {
-            const started = await debugFile(target.resource, target.runtime, { nodeExecutable, tsxRuntime });
+            const started = await debugFile(target.resource, target.runtime, plan);
             if (!started) {
                 vscode.window.showErrorMessage(t('debug.unableToStart'));
             }
@@ -97,10 +83,16 @@ async function executeRunCommand(options: RunOptions) {
         return;
     }
 
-    runFile(createRunTerminal(), target.resource, nodeVersion);
+    try {
+        await runner?.run(plan);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Unable to run file: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    runner = new FileTaskRunner();
+    context.subscriptions.push(runner);
     const commands: Array<[string, RunOptions]> = [
         ['extension.ts-bootstrap.execTerminal', { debug: false, selectVersion: false }],
         ['extension.ts-bootstrap.debugTerminal', { debug: true, selectVersion: false }],
@@ -112,12 +104,10 @@ export function activate(context: vscode.ExtensionContext) {
         ...commands.map(([command, options]) =>
             vscode.commands.registerCommand(command, () => executeRunCommand(options)),
         ),
-        vscode.debug.registerDebugAdapterTrackerFactory('pwa-node', { createDebugAdapterTracker }),
-        vscode.debug.onDidStartDebugSession(prepareDebugSession),
-        vscode.debug.onDidTerminateDebugSession(releaseDebugSession),
     );
 }
 
 export function deactivate() {
-    disposeTerminal(EXEC_TERMINAL_NAME);
+    runner?.dispose();
+    runner = undefined;
 }

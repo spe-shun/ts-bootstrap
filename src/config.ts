@@ -2,36 +2,17 @@ import * as vscode from 'vscode';
 
 export const EXTENSION_NAME = 'ts-bootstrap';
 
-enum ConfigNameEnum {
-    EXEC_IN_CURRENT_DIR = 'executeInCurrentDirectory',
+export type DebugConsole = 'internalConsole' | 'integratedTerminal';
+
+/** Prefer the Debug Console unless this file explicitly needs an interactive terminal. */
+export function getDebugConsole(resource: vscode.Uri): DebugConsole {
+    const console = vscode.workspace.getConfiguration(EXTENSION_NAME, resource).get<string>('debugConsole');
+    return console === 'integratedTerminal' ? 'integratedTerminal' : 'internalConsole';
 }
 
-class Configs {
-    #config = { [ConfigNameEnum.EXEC_IN_CURRENT_DIR]: true };
-
-    constructor() {
-        this.refreshConfigs();
-        vscode.workspace.onDidChangeConfiguration(event => {
-            if (event.affectsConfiguration(EXTENSION_NAME)) {
-                this.refreshConfigs();
-            }
-        });
-    }
-
-    refreshConfigs() {
-        const confObj = vscode.workspace.getConfiguration(EXTENSION_NAME);
-
-        this.#config = {
-            [ConfigNameEnum.EXEC_IN_CURRENT_DIR]: confObj.get<boolean>(ConfigNameEnum.EXEC_IN_CURRENT_DIR) ?? true,
-        };
-
-        Object.freeze(this.#config);
-    }
-
-    get raw() {
-        return this.#config;
-    }
+/** Read configuration for the target file, including multi-root folder overrides. */
+export function executeInWorkspaceDirectory(resource: vscode.Uri): boolean {
+    return (
+        vscode.workspace.getConfiguration(EXTENSION_NAME, resource).get<boolean>('executeInCurrentDirectory') ?? true
+    );
 }
-
-const config = new Configs();
-export default config;

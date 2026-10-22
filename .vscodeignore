@@ -15,3 +15,5 @@ vsc-extension-quickstart.md
 # Explicitly include l10n files
 !l10n/**
 !package.nls*.json
+
+test/**

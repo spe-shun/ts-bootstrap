@@ -1,6 +1,8 @@
 {
-    "config.executeInCurrentDirectory": "true の場合、現在のディレクトリでターゲットファイルを実行し、false の場合はターゲットファイルのディレクトリで実行します",
-
+    "config.executeInCurrentDirectory": "実行とデバッグの作業ディレクトリ。true: 対象ファイルのワークスペースフォルダー、false: ファイルのあるディレクトリ。ワークスペース外では常にファイルのあるディレクトリを使用します。ターミナルの現在のディレクトリではありません。",
+    "config.debugConsole": "デバッグ出力先。対話入力や TTY が必要なプログラムには統合ターミナルを選択してください。",
+    "config.debugConsole.internalConsole": "デバッグコンソール：ターミナルの長い環境変数コマンドを表示せずに出力します。プログラムへの入力には対応していません。",
+    "config.debugConsole.integratedTerminal": "統合ターミナル：対話入力と TTY に対応し、デバッガーの起動コマンドを表示します。",
     "command.runTsJs": "実行 TS/JS",
     "command.debugTsJs": "デバッグ TS/JS",
     "command.runTsJsWith": "実行 TS/JS（指定 Node）",

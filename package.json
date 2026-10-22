@@ -2,7 +2,7 @@
     "name": "ts-bootstrap",
     "displayName": "TS/JS Runner & Debugger",
     "description": "VSCode extension for quickly running and debugging TypeScript and JavaScript files",
-    "version": "0.2.8",
+    "version": "0.2.11",
     "publisher": "spe-shun",
     "repository": {
         "type": "git",
@@ -34,7 +34,22 @@
                     "ts-bootstrap.executeInCurrentDirectory": {
                         "type": "boolean",
                         "default": true,
-                        "description": "%config.executeInCurrentDirectory%"
+                        "description": "%config.executeInCurrentDirectory%",
+                        "scope": "resource"
+                    },
+                    "ts-bootstrap.debugConsole": {
+                        "type": "string",
+                        "enum": [
+                            "internalConsole",
+                            "integratedTerminal"
+                        ],
+                        "enumDescriptions": [
+                            "%config.debugConsole.internalConsole%",
+                            "%config.debugConsole.integratedTerminal%"
+                        ],
+                        "default": "internalConsole",
+                        "description": "%config.debugConsole%",
+                        "scope": "resource"
                     }
                 }
             }
@@ -104,7 +119,9 @@
         "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
         "test": "node ./out/test/runTest.js",
         "tag": "git tag $npm_package_version && git push origin $npm_package_version",
-        "release": "vsce publish && yarn run tag"
+        "release": "vsce publish && yarn run tag",
+        "test:unit": "yarn run compile-tests && node test/run-unit.cjs && node --test test/*.test.cjs",
+        "test:debug": "yarn run package && node test/run-debug-e2e.cjs"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.2",
