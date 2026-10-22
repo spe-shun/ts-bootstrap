@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { test, afterEach } = require('node:test');
+const { test, beforeEach, afterEach } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
 const Module = require('node:module');
@@ -19,9 +19,26 @@ Module._load = function (request, ...rest) {
 };
 const { debugFile, createDebugConfiguration } = require('../out/scripts/debug-file.js');
 Module._load = originalLoad;
+const getConfiguration = vscode.workspace.getConfiguration;
+const consoleSettings = new Map();
+const configurationReads = [];
+beforeEach(() => {
+    vscode.workspace.getConfiguration = (section, target) => ({
+        get: key => {
+            if (key === 'debugConsole') {
+                configurationReads.push({ section, target });
+                return consoleSettings.get(target.toString());
+            }
+            return getConfiguration(section, target).get(key);
+        },
+    });
+});
 afterEach(() => {
     calls.length = 0;
     launch = async () => true;
+    consoleSettings.clear();
+    configurationReads.length = 0;
+    vscode.workspace.getConfiguration = getConfiguration;
 });
 const resource = vscode.Uri.file('/project with spaces/example.ts');
 const options = {
@@ -35,6 +52,11 @@ test('standard TS launch uses selected runtime without forced inspector entry st
     const config = calls[0][1];
     assert.equal(config.type, 'pwa-node');
     assert.equal(config.request, 'launch');
+    assert.equal(config.name, 'TS/JS Debugger: example.ts');
+    assert.equal(config.program, resource.fsPath);
+    assert.equal(config.console, 'internalConsole');
+    assert.equal(config.internalConsoleOptions, 'openOnSessionStart');
+    assert.equal(config.outputCapture, 'std');
     assert.equal(config.runtimeExecutable, options.nodeExecutable);
     assert.equal(config.cwd, options.cwd);
     assert.deepEqual(config.env, options.env);
@@ -45,6 +67,34 @@ test('standard TS launch uses selected runtime without forced inspector entry st
         '--import',
         'file:///project%20with%20spaces/node_modules/tsx/dist/loader.mjs',
     ]);
+});
+test('interactive debugging uses the target file setting without duplicate std capture', async () => {
+    consoleSettings.set(resource.toString(), 'integratedTerminal');
+    assert.equal(await debugFile(resource, 'typescript', options), true);
+    const config = calls[0][1];
+    assert.equal(config.console, 'integratedTerminal');
+    assert.equal(config.internalConsoleOptions, 'neverOpen');
+    assert.equal(config.outputCapture, undefined);
+    assert.equal(config.runtimeExecutable, options.nodeExecutable);
+    assert.equal(config.cwd, options.cwd);
+    assert.deepEqual(config.env, options.env);
+    assert.equal(config.stopOnEntry, false);
+    assert.deepEqual(configurationReads, [{ section: 'ts-bootstrap', target: resource }]);
+});
+test('console selection follows each resource and falls back to the Debug Console', () => {
+    const terminalFile = vscode.Uri.file('/interactive/input.js');
+    const defaultFile = vscode.Uri.file('/scripts/output.js');
+    consoleSettings.set(terminalFile.toString(), 'integratedTerminal');
+    assert.equal(createDebugConfiguration(terminalFile, 'javascript', '/interactive').console, 'integratedTerminal');
+    const fallback = createDebugConfiguration(defaultFile, 'javascript', '/scripts');
+    assert.equal(fallback.name, 'TS/JS Debugger: output.js');
+    assert.equal(fallback.console, 'internalConsole');
+    consoleSettings.set(defaultFile.toString(), 'internalConsole');
+    assert.equal(createDebugConfiguration(defaultFile, 'javascript', '/scripts').console, 'internalConsole');
+    consoleSettings.set(defaultFile.toString(), 'invalid');
+    assert.equal(createDebugConfiguration(defaultFile, 'javascript', '/scripts').console, 'internalConsole');
+    consoleSettings.delete(terminalFile.toString());
+    assert.equal(createDebugConfiguration(terminalFile, 'javascript', '/interactive').console, 'internalConsole');
 });
 test('JS launch also leaves ordinary pause and breakpoint handling to js-debug', () => {
     const config = createDebugConfiguration(vscode.Uri.file('/project/example.js'), 'javascript', '/project');

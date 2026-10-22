@@ -1,5 +1,8 @@
 {
     "config.executeInCurrentDirectory": "运行和调试时，true 使用目标文件所属的工作区文件夹，false 使用文件所在目录。工作区外的文件始终使用其所在目录；这不是终端当前目录。",
+    "config.debugConsole": "调试输出位置。需要交互输入或 TTY 的程序请选择集成终端。",
+    "config.debugConsole.internalConsole": "调试控制台：显示输出，不回显终端的长环境变量命令。不支持向程序输入。",
+    "config.debugConsole.integratedTerminal": "集成终端：支持交互输入和 TTY 程序，会显示调试器启动命令。",
     "command.runTsJs": "运行 TS/JS",
     "command.debugTsJs": "调试 TS/JS",
     "command.runTsJsWith": "运行 TS/JS（指定 Node）",

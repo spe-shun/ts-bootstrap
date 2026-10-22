@@ -1,5 +1,7 @@
 import { pathToFileURL } from 'url';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { getDebugConsole } from '../config';
 import { TsxDebugRuntime } from './check-tsx';
 import { FileRuntime, getExecutionDirectory } from './run-files';
 
@@ -19,14 +21,16 @@ export function createDebugConfiguration(
     executionDirectory: string,
     options: DebugFileOptions = {},
 ): vscode.DebugConfiguration | undefined {
+    const console = getDebugConsole(resource);
     const configuration: vscode.DebugConfiguration = {
         type: 'pwa-node',
         request: 'launch',
-        name: DEBUG_SESSION_NAME,
+        name: `${DEBUG_SESSION_NAME}: ${path.basename(resource.fsPath)}`,
         program: resource.fsPath,
         cwd: executionDirectory,
-        console: 'integratedTerminal',
-        internalConsoleOptions: 'neverOpen',
+        console,
+        internalConsoleOptions: console === 'internalConsole' ? 'openOnSessionStart' : 'neverOpen',
+        ...(console === 'internalConsole' ? { outputCapture: 'std' } : {}),
         // Let js-debug own inspector startup and worker handling.
         autoAttachChildProcesses: false,
         stopOnEntry: false,

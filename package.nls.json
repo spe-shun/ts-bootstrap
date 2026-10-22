@@ -1,5 +1,8 @@
 {
     "config.executeInCurrentDirectory": "Run and debug in the target file’s workspace folder (true), or its containing directory (false). Files outside a workspace use their containing directory. This is not the current terminal directory.",
+    "config.debugConsole": "Where to show debug output. Use the integrated terminal for programs that need interactive input or a TTY.",
+    "config.debugConsole.internalConsole": "Debug Console: show output without the terminal's long environment command. Program input is not supported.",
+    "config.debugConsole.integratedTerminal": "Integrated Terminal: support interactive input and TTY programs; the debugger's launch command is visible.",
     "command.runTsJs": "Run TS/JS",
     "command.debugTsJs": "Debug TS/JS",
     "command.runTsJsWith": "Run TS/JS with ...",

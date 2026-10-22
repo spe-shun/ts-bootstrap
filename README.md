@@ -21,6 +21,7 @@ A VS Code extension for simplifying JavaScript and TypeScript file execution and
 ## Configuration Options
 
 - `ts-bootstrap.executeInCurrentDirectory`: Use the target workspace folder (true) or the file’s directory (false), not the terminal current directory
+- `ts-bootstrap.debugConsole`: Choose `internalConsole` (default) for Debug Console output, or `integratedTerminal` for programs that need interactive input or a TTY. This affects Debug only and supports per-folder settings.
 
 ## Requirements
 
@@ -32,7 +33,7 @@ A VS Code extension for simplifying JavaScript and TypeScript file execution and
 
 1. Open a saved `.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, or `.mts` file.
 2. Use the editor’s Run menu or Command Palette: **Run TS/JS** or **Debug TS/JS**. “With…” commands select an installed nvm / nvm-windows Node version.
-3. Debug uses the native VS Code breakpoints, variables, and stepping UI. Dirty files are saved before launch; a cancelled save cancels launch.
+3. Debug opens the Debug Console for stdout/stderr and names the session after the file. Use native VS Code breakpoints, variables, and stepping. Dirty files are saved before launch; a cancelled save cancels launch.
 
 JSX / TSX (`.jsx`, `.tsx`), browser applications, bundling, and arbitrary project scripts are not supported. This is a single-file Node.js runner, not a replacement for project launch configurations.
 
@@ -53,14 +54,30 @@ Each file has its own extension-owned task. Running another file leaves existing
 
 The setting supports per-folder values in multi-root workspaces. It does **not** mean the terminal’s current directory. Run’s task command shows the resolved runtime; Debug’s launch configuration uses the same resolution.
 
-## Development checks
+## Debug output and startup
 
-`yarn test:unit` runs isolated regression tests with a mocked VS Code API, not end-to-end integration. `yarn test` runs the VS Code Electron integration suite and requires a supported desktop/display environment. Also run `yarn lint:check`, `yarn format:check`, and `yarn package` before packaging a VSIX.
+Debug uses the Debug Console by default. It opens automatically and captures stdout/stderr without the long terminal environment command. VS Code may still display a single startup command line.
 
-Standalone files outside a workspace run in a dedicated terminal with Node as the executable. Automatic tsx installation needs an open workspace folder; otherwise install tsx manually and retry.
+Output, including objects passed to `console.log`, is captured as text. Inspect expandable objects in Variables, Watch, or debug expressions.
 
-### Debug startup
+The Debug Console cannot provide input to your program. For `readline`, stdin, prompts, or other TTY-dependent behavior, set the following in VS Code settings:
+
+```json
+{
+    "ts-bootstrap.debugConsole": "integratedTerminal"
+}
+```
+
+This choice is saved; the extension does not ask on each launch or try to detect whether a program needs input. Terminal mode keeps interactive input and may display VS Code’s debugger environment and startup command. Normal Run commands continue to use a terminal.
 
 Debug now uses the standard VS Code JavaScript debugger launch path, with no forced entry pause or private CDP setup. It stops at your breakpoints and respects your exception-breakpoint settings. `--import` (or older Node’s `--loader`) loads tsx; VS Code may add its own inspector bootstrap options. Those are debugger/runtime options, not arguments passed to your script.
 
 Only a necessary PATH override is added to the launch environment. Other variables are inherited normally rather than copied into the displayed command. If a real exception stops in loader/import internals, inspect the exception and Debug Console instead of blindly continuing; the extension does not suppress these stops.
+
+## Development checks
+
+`yarn test:unit` runs isolated regression tests with a mocked VS Code API, not end-to-end integration. `yarn test` runs the VS Code Electron integration suite and requires a supported desktop/display environment. Also run `yarn lint:check`, `yarn format:check`, and `yarn package` before packaging a VSIX.
+
+`yarn test:debug` runs real debugger checks in a disposable VS Code profile and a workspace with spaces in its path. It uses an installed VS Code and a local tsx fixture (installing tsx in the temporary workspace if needed). Override their locations with `TS_BOOTSTRAP_E2E_VSCODE`, `TS_BOOTSTRAP_E2E_TSX`, and `TS_BOOTSTRAP_E2E_NODE`. Each run prints its diagnostics directory.
+
+For normal Run commands, standalone files outside a workspace use a dedicated terminal with Node as the executable. Automatic tsx installation needs an open workspace folder; otherwise install tsx manually and retry.
