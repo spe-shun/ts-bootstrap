@@ -4,6 +4,11 @@ All notable changes to the "ts-bootstrap" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.2.8]
+
+- Updated the development and publishing toolchain to markdown-it 14.3.3 to address GHSA-gfr2-rv44-r23c and GHSA-r7fv-28h4-cvq7
+- No changes to the extension runtime functionality
+
 ## [0.2.7]
 
 - Replaced ts-node with tsx for reliable TypeScript execution on modern Node.js and TypeScript versions
@@ -54,6 +59,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added semver dependency for better Node.js version handling
 - Updated README with feature descriptions and usage instructions
 
+[0.2.8]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.8
 [0.2.7]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.7
 [0.2.6]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.6
 [0.2.4]: https://github.com/spe-shun/ts-bootstrap/releases/tag/0.2.4
